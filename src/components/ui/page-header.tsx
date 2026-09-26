@@ -17,9 +17,9 @@ export function PageHeader({
     <header className="section mb-14 md:mb-20">
       <p className="label">{meta}</p>
       <div className="min-w-0">
-        <h1 className="text-2xl font-normal tracking-[-0.015em]">{title}</h1>
+        <h1 className="text-2xl font-normal">{title}</h1>
         {intro && (
-          <p className="mt-4 max-w-prose text-lg text-muted">{intro}</p>
+          <p className="mt-4 max-w-measure text-xl text-muted">{intro}</p>
         )}
         {children}
       </div>

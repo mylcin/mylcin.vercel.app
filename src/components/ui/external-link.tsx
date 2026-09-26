@@ -12,7 +12,7 @@ export async function ExternalLink({
   arrow?: boolean;
   children: React.ReactNode;
 }) {
-  const { t } = await getT();
+  const { locale, t } = await getT();
   return (
     <a href={href} target="_blank" rel="noreferrer" className={className}>
       {children}
@@ -24,7 +24,10 @@ export async function ExternalLink({
           ↗
         </span>
       )}
-      <span className="sr-only"> {t.controls.opensInNewTab}</span>
+      <span lang={locale} className="sr-only">
+        {' '}
+        {t.controls.opensInNewTab}
+      </span>
     </a>
   );
 }

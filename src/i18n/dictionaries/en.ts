@@ -9,33 +9,29 @@ import type { Plural } from '../format';
  * lives in `/content`, not here.
  */
 const en = {
+  // Server-only (page metadata); not sent to the browser.
   meta: {
-    description:
-      'Front-end developer in Eskişehir. Interfaces where simplicity and usability come first — plus notes on the web platform.',
     workDescription:
-      'Projects by Mustafa Yalçın: what they are, why they exist, and what went into them.',
+      'Projects by {name}: what they are, why they exist, and what went into them.',
     blogDescription:
-      'Notes on front-end work, security advisories read past the headline, and whatever I am learning.',
-    aboutDescription:
-      'Experience, skills, education and how to reach Mustafa Yalçın.',
+      'Notes on front-end work, security advisories read past the headline, and whatever I’m learning.',
+    aboutDescription: 'Experience, skills, education and how to reach {name}.',
   },
 
   languageNames: { en: 'English', tr: 'Turkish' },
 
   nav: {
     skipToContent: 'Skip to content',
-    home: 'Home',
     work: 'Work',
     blog: 'Blog',
     about: 'About',
     primary: 'Primary',
     breadcrumbs: 'You are here',
-    homeLink: 'Mustafa Yalçın, home page',
+    homeLink: '{name}, home page',
   },
 
   controls: {
     openConsole: 'Open console',
-    console: 'Console',
     language: 'Language',
     switchLanguage: 'Read in {language}',
     theme: 'Theme',
@@ -52,6 +48,7 @@ const en = {
     updated: 'Updated {date}',
     source: 'Source',
     rss: 'RSS',
+    resume: 'CV',
     localTime: 'Local time in {city}',
     status: {
       asleep: 'probably asleep',
@@ -61,7 +58,6 @@ const en = {
   },
 
   home: {
-    title: 'Mustafa Yalçın — Front-end developer',
     runningHead: 'Personal Manual',
     sections: {
       name: 'Name',
@@ -73,7 +69,7 @@ const en = {
       bugs: 'Bugs',
     },
     synopsisRun: 'run it',
-    synopsisRunLabel: 'Run this command in the console',
+    synopsisRunLabel: 'Run it in the console',
     allWork: 'All work',
     allPosts: 'All posts',
   },
@@ -87,12 +83,7 @@ const en = {
     intro:
       'Things I have built, am building, or keep meaning to finish. Each one has the short version and the longer story.',
     keyboardHint: '↑ ↓ to browse · ↵ to open',
-    columns: {
-      project: 'Project',
-      type: 'Type',
-      year: 'Year',
-      status: 'Status',
-    },
+    columns: { project: 'Project', status: 'Status' },
     fields: {
       summary: 'In short',
       why: 'Why it exists',
@@ -102,8 +93,6 @@ const en = {
       outcome: 'Outcome',
       stack: 'Stack',
       links: 'Links',
-      year: 'Year',
-      type: 'Type',
       status: 'Status',
     },
     links: { live: 'Live site', source: 'Source code', docs: 'Docs' },
@@ -120,10 +109,10 @@ const en = {
       other: 'Other',
     },
     readCaseStudy: 'Read the full story',
-    showDetails: 'Show details for {project}',
     previous: 'Previous project',
     next: 'Next project',
     allWork: 'All work',
+    pager: 'More projects',
     noDetails:
       'The long version of this one is still being written. The short version is above.',
     empty: 'Nothing here yet.',
@@ -133,7 +122,7 @@ const en = {
     title: 'Blog',
     count: { one: '{count} post', other: '{count} posts' } satisfies Plural,
     intro:
-      'Notes on front-end work, security advisories read past the headline, and whatever I am learning.',
+      'Notes on front-end work, security advisories read past the headline, and whatever I’m learning.',
     filterLabel: 'Filter by tag',
     allTags: 'All',
     clearFilter: 'Clear filter',
@@ -148,7 +137,6 @@ const en = {
       other: '{count} min read',
     } satisfies Plural,
     onlyIn: 'Only in {language}',
-    published: 'Published',
     updated: 'Updated {date}',
     toc: 'On this page',
     fallbackNotice:
@@ -161,9 +149,10 @@ const en = {
     older: 'Older',
     related: 'Related',
     allPosts: 'All posts',
+    pager: 'More posts',
     copyCode: 'Copy code',
     rss: 'RSS feed',
-    feedTitle: 'Mustafa Yalçın — Blog',
+    feedTitle: '{name} — Blog',
   },
 
   about: {
@@ -173,9 +162,9 @@ const en = {
       experience: 'Experience',
       skills: 'Skills',
       education: 'Education',
-      certifications: 'Certificates',
       contact: 'Contact',
     },
+    spokenLanguages: 'Spoken languages',
     present: 'Present',
     years: { one: '{count} yr', other: '{count} yrs' } satisfies Plural,
     months: { one: '{count} mo', other: '{count} mos' } satisfies Plural,
@@ -186,11 +175,7 @@ const en = {
       internship: 'Internship',
     },
     gpa: 'GPA {value}',
-    verify: 'Verify',
-    credential: 'Credential {id}',
-    contactIntro: 'Email is the best way to reach me.',
     resume: 'Download résumé (PDF)',
-    elsewhere: 'Elsewhere',
   },
 
   notFound: {
@@ -215,7 +200,6 @@ const en = {
     placeholder: 'type a command, or try help',
     welcome: 'This is the same site, as a shell. Type a command, or pick one:',
     keys: '↑↓ history · tab complete · esc close',
-    loading: 'loading…',
     suggestions: 'Suggestions',
     quick: {
       home: 'Home',
@@ -255,7 +239,6 @@ const en = {
       notADirectory: '{command}: not a directory: {path}',
       isADirectory: '{command}: {path}: is a directory',
       missingOperand: '{command}: missing operand',
-      unknownOption: '{command}: unknown option: {option}',
       usage: 'usage: {usage}',
       invalidValue: '{command}: invalid value: {value} (expected {expected})',
       empty: '(empty)',
@@ -267,6 +250,7 @@ const en = {
       switchingLanguage: 'switching to {language}…',
       opening: 'opening {target}…',
       noHistory: 'no history yet',
+      oldpwdNotSet: 'cd: OLDPWD not set',
       grepNoMatch: 'no matches for “{query}”',
       grepMatches: {
         one: '{count} match',
@@ -279,7 +263,7 @@ const en = {
       binaryFile: 'cat: {file}: binary file — try',
       makeNoTarget:
         'make: *** No targets specified and no makefile found.  Stop.',
-      whoami: 'a visitor. I am Mustafa, and this is my site. Try: man mustafa',
+      whoami: 'a visitor. I’m {name}, and this is my site. Try: {command}',
       mustafaIdea: '“{idea}” sounds interesting. Tell me more: {email}',
       mustafaVersion: 'mustafa {version} — in production since {since}',
       mustafaSeeAlso: 'see also',
@@ -301,9 +285,7 @@ const en = {
         role: 'role',
         stack: 'stack',
         languages: 'languages',
-        languagesValue: 'Turkish, English',
         hobbies: 'hobbies',
-        hobbiesValue: 'books, video games',
         theme: 'theme',
       },
     },

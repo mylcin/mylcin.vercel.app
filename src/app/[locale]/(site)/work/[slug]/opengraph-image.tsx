@@ -1,11 +1,14 @@
+import { notFound } from 'next/navigation';
 import { defaultLocale, isLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getProject, getProjectSlugs } from '@/lib/content/site';
-import { ogContentType, ogHost, ogImage, ogSize } from '@/lib/og';
+import { projectMeta } from '@/features/work/project-meta';
+import { ogAlt, ogContentType, ogHost, ogImage, ogSize } from '@/lib/og';
 
-export const alt = 'Mustafa Yalçın — Work';
+export const alt = ogAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return locales.flatMap(locale =>
@@ -20,18 +23,10 @@ export default async function Image({
 }) {
   const { locale: raw, slug } = await params;
   const locale = isLocale(raw) ? raw : defaultLocale;
-  const t = getDictionary(locale);
   const project = getProject(slug, locale);
-  if (!project)
-    return ogImage({
-      eyebrow: t.work.title,
-      title: t.notFound.title,
-      footer: ogHost,
-    });
+  if (!project) notFound();
   return ogImage({
-    eyebrow: [t.work.category[project.category], project.year]
-      .filter(Boolean)
-      .join(' · '),
+    eyebrow: projectMeta(project, getDictionary(locale)),
     title: project.title,
     subtitle: project.tagline,
     footer: `${ogHost}/work`,

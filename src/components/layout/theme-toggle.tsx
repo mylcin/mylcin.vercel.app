@@ -21,6 +21,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={label}
       title={label}
       onClick={() => setPreference(theme === 'dark' ? 'light' : 'dark')}
+      data-testid="theme-toggle"
+      data-theme-state={theme ?? undefined}
       className={buttonClass({ variant: 'ghost', size: 'icon', className })}
     >
       {/* Both icons render; CSS picks one, so there's no flash before hydration. */}

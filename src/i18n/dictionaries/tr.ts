@@ -2,32 +2,27 @@ import type { Dictionary } from './en';
 
 const tr: Dictionary = {
   meta: {
-    description:
-      'Eskişehir’de front-end geliştirici. Sadeliğin ve kullanılabilirliğin önce geldiği arayüzler — bir de web platformu üzerine notlar.',
     workDescription:
-      'Mustafa Yalçın’ın projeleri: ne oldukları, neden var oldukları ve arkalarında neler olduğu.',
+      'Projeler: ne oldukları, neden var oldukları ve arkalarında neler olduğu — {name}.',
     blogDescription:
-      'Front-end üzerine notlar, başlığın ötesine geçilerek okunmuş güvenlik bültenleri ve öğrendiğim şeyler.',
-    aboutDescription:
-      'Mustafa Yalçın’ın deneyimi, yetkinlikleri, eğitimi ve iletişim bilgileri.',
+      'Front-end üzerine notlar, başlığıyla yetinmeden okuduğum güvenlik bültenleri ve o sıralar ne öğreniyorsam o.',
+    aboutDescription: 'Deneyim, yetkinlikler, eğitim ve iletişim — {name}.',
   },
 
   languageNames: { en: 'İngilizce', tr: 'Türkçe' },
 
   nav: {
     skipToContent: 'İçeriğe geç',
-    home: 'Ana sayfa',
     work: 'İşler',
     blog: 'Blog',
     about: 'Hakkımda',
     primary: 'Ana menü',
     breadcrumbs: 'Buradasın',
-    homeLink: 'Mustafa Yalçın, ana sayfa',
+    homeLink: '{name}, ana sayfa',
   },
 
   controls: {
     openConsole: 'Konsolu aç',
-    console: 'Konsol',
     language: 'Dil',
     switchLanguage: '{language} sürümünü oku',
     theme: 'Tema',
@@ -44,6 +39,7 @@ const tr: Dictionary = {
     updated: 'Son güncelleme: {date}',
     source: 'Kaynak kodu',
     rss: 'RSS',
+    resume: 'Özgeçmiş',
     localTime: '{city} yerel saati',
     status: {
       asleep: 'muhtemelen uyuyor',
@@ -53,7 +49,6 @@ const tr: Dictionary = {
   },
 
   home: {
-    title: 'Mustafa Yalçın — Front-end geliştirici',
     runningHead: 'Kişisel Kılavuz',
     sections: {
       name: 'İsim',
@@ -65,7 +60,7 @@ const tr: Dictionary = {
       bugs: 'Hatalar',
     },
     synopsisRun: 'çalıştır',
-    synopsisRunLabel: 'Bu komutu konsolda çalıştır',
+    synopsisRunLabel: 'Konsolda çalıştır',
     allWork: 'Tüm işler',
     allPosts: 'Tüm yazılar',
   },
@@ -76,18 +71,16 @@ const tr: Dictionary = {
     intro:
       'Yaptığım, yapmakta olduğum ya da bir gün bitirmeyi planladığım şeyler. Her birinin kısa bir özeti ve daha uzun bir hikâyesi var.',
     keyboardHint: '↑ ↓ gez · ↵ aç',
-    columns: { project: 'Proje', type: 'Tür', year: 'Yıl', status: 'Durum' },
+    columns: { project: 'Proje', status: 'Durum' },
     fields: {
       summary: 'Kısaca',
-      why: 'Neden var',
+      why: 'Neden yaptım',
       highlights: 'Öne çıkanlar',
-      role: 'Benim payım',
+      role: 'Katkım',
       decisions: 'Kararlar',
       outcome: 'Sonuç',
       stack: 'Teknolojiler',
       links: 'Bağlantılar',
-      year: 'Yıl',
-      type: 'Tür',
       status: 'Durum',
     },
     links: { live: 'Canlı site', source: 'Kaynak kodu', docs: 'Dokümantasyon' },
@@ -104,10 +97,10 @@ const tr: Dictionary = {
       other: 'Diğer',
     },
     readCaseStudy: 'Hikâyenin tamamı',
-    showDetails: '{project} ayrıntılarını göster',
     previous: 'Önceki proje',
     next: 'Sonraki proje',
     allWork: 'Tüm işler',
+    pager: 'Diğer projeler',
     noDetails: 'Bunun uzun hâli hâlâ yazılıyor. Kısa hâli yukarıda.',
     empty: 'Henüz bir şey yok.',
   },
@@ -116,7 +109,7 @@ const tr: Dictionary = {
     title: 'Blog',
     count: { other: '{count} yazı' },
     intro:
-      'Front-end üzerine notlar, başlığın ötesine geçilerek okunmuş güvenlik bültenleri ve öğrendiğim şeyler.',
+      'Front-end üzerine notlar, başlığıyla yetinmeden okuduğum güvenlik bültenleri ve o sıralar ne öğreniyorsam o.',
     filterLabel: 'Etikete göre filtrele',
     allTags: 'Tümü',
     clearFilter: 'Filtreyi temizle',
@@ -125,7 +118,6 @@ const tr: Dictionary = {
     empty: 'Henüz yayınlanmış bir yazı yok.',
     readingTime: { other: '{count} dk okuma' },
     onlyIn: 'Yalnızca {language}',
-    published: 'Yayınlandı',
     updated: 'Güncellendi: {date}',
     toc: 'Bu sayfada',
     fallbackNotice:
@@ -138,9 +130,10 @@ const tr: Dictionary = {
     older: 'Daha eski',
     related: 'İlgili yazılar',
     allPosts: 'Tüm yazılar',
+    pager: 'Diğer yazılar',
     copyCode: 'Kodu kopyala',
     rss: 'RSS akışı',
-    feedTitle: 'Mustafa Yalçın — Blog',
+    feedTitle: '{name} — Blog',
   },
 
   about: {
@@ -150,9 +143,9 @@ const tr: Dictionary = {
       experience: 'Deneyim',
       skills: 'Yetkinlikler',
       education: 'Eğitim',
-      certifications: 'Sertifikalar',
       contact: 'İletişim',
     },
+    spokenLanguages: 'Konuşulan diller',
     present: 'Günümüz',
     years: { other: '{count} yıl' },
     months: { other: '{count} ay' },
@@ -163,11 +156,7 @@ const tr: Dictionary = {
       internship: 'Staj',
     },
     gpa: 'Not ortalaması {value}',
-    verify: 'Doğrula',
-    credential: 'Sertifika no. {id}',
-    contactIntro: 'Bana ulaşmanın en iyi yolu e-posta.',
     resume: 'Özgeçmişi indir (PDF)',
-    elsewhere: 'Diğer yerler',
   },
 
   notFound: {
@@ -191,9 +180,8 @@ const tr: Dictionary = {
     inputLabel: 'Komut',
     placeholder: 'bir komut yaz ya da help dene',
     welcome:
-      'Burası aynı site, sadece kabuk hâlinde. Bir komut yaz ya da birini seç:',
+      'Aynı site, bu kez komut satırında. Bir komut yaz ya da birini seç:',
     keys: '↑↓ geçmiş · tab tamamla · esc kapat',
-    loading: 'yükleniyor…',
     suggestions: 'Öneriler',
     quick: {
       home: 'Ana sayfa',
@@ -206,15 +194,15 @@ const tr: Dictionary = {
     commands: {
       help: 'komutları listele ya da birini açıkla',
       ls: 'bir dizinde ne olduğunu listele',
-      cd: 'bir yere git — siteyi gezer',
+      cd: 'bir yere git — sayfa da oraya gider',
       pwd: 'nerede olduğunu yazdır',
       cat: 'bir dosyayı yazdır',
       open: 'bir sayfa, dosya ya da bağlantı aç',
       grep: 'yazılarda ve projelerde ara',
       man: 'kılavuzu oku',
       mustafa: 'insanı çalıştır',
-      whoami: 'sen kimsin, gerçekten',
-      neofetch: 'sistem bilgisi, ama bir insan için',
+      whoami: 'sen kimsin, aslında?',
+      neofetch: 'sistem bilgisi, ama bir insanın',
       email: 'e-posta adresimi kopyala',
       lang: 'dili değiştir',
       theme: 'temayı değiştir',
@@ -233,7 +221,6 @@ const tr: Dictionary = {
       notADirectory: '{command}: bir dizin değil: {path}',
       isADirectory: '{command}: {path}: bir dizin',
       missingOperand: '{command}: eksik argüman',
-      unknownOption: '{command}: bilinmeyen seçenek: {option}',
       usage: 'kullanım: {usage}',
       invalidValue: '{command}: geçersiz değer: {value} (beklenen: {expected})',
       empty: '(boş)',
@@ -242,9 +229,10 @@ const tr: Dictionary = {
       theme: 'tema: {theme}',
       themeNames: { light: 'açık', dark: 'koyu', system: 'sistem' },
       language: 'dil: {language}',
-      switchingLanguage: '{language} diline geçiliyor…',
+      switchingLanguage: 'dil değiştiriliyor: {language}…',
       opening: '{target} açılıyor…',
       noHistory: 'henüz geçmiş yok',
+      oldpwdNotSet: 'cd: OLDPWD tanımlı değil',
       grepNoMatch: '“{query}” için sonuç yok',
       grepMatches: { other: '{count} sonuç' },
       helpTitle: 'komutlar',
@@ -256,9 +244,9 @@ const tr: Dictionary = {
       makeNoTarget:
         'make: *** Hedef belirtilmedi ve makefile bulunamadı.  Durdu.',
       whoami:
-        'bir ziyaretçi. Ben Mustafa, burası da benim sitem. Şunu dene: man mustafa',
+        'bir ziyaretçi. Ben {name}, burası da benim sitem. Şunu dene: {command}',
       mustafaIdea: '“{idea}” ilginç görünüyor. Biraz daha anlat: {email}',
-      mustafaVersion: 'mustafa {version} — {since} tarihinden beri üretimde',
+      mustafaVersion: 'mustafa {version} — {since} tarihinden beri canlıda',
       mustafaSeeAlso: 'ayrıca bakınız',
       options: 'seçenekler',
       readMore: 'devamı için: open {path}',
@@ -277,9 +265,7 @@ const tr: Dictionary = {
         role: 'rol',
         stack: 'teknolojiler',
         languages: 'diller',
-        languagesValue: 'Türkçe, İngilizce',
         hobbies: 'hobiler',
-        hobbiesValue: 'kitaplar, video oyunları',
         theme: 'tema',
       },
     },

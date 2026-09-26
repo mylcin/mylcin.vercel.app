@@ -4,7 +4,7 @@ import { getT } from '@/i18n/server';
 
 /** `<pre>` from rehype-pretty-code, with a header showing language + copy. */
 export async function CodeBlock(props: React.ComponentProps<'pre'>) {
-  const { t } = await getT();
+  const { locale, t } = await getT();
   const language = (props as Record<string, unknown>)['data-language'] as
     string | undefined;
   const raw = (props as Record<string, unknown>)['data-raw'] as
@@ -12,7 +12,10 @@ export async function CodeBlock(props: React.ComponentProps<'pre'>) {
 
   return (
     <div className="code-block overflow-hidden rounded-md border border-line bg-raised">
-      <div className="flex h-9 items-center justify-between border-b border-line pr-1 pl-3 font-mono text-xs text-muted">
+      <div
+        lang={locale}
+        className="flex h-9 items-center justify-between border-b border-line pr-1 pl-3 font-mono text-xs text-muted"
+      >
         <span>{language && language !== 'plaintext' ? language : ''}</span>
         {raw && (
           <CopyButton

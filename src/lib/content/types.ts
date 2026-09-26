@@ -24,6 +24,8 @@ export interface Profile {
   role: Localized;
   email: string;
   location: { city: string; country: Localized; timeZone: string };
+  /** Default meta description: one or two sentences for search results. */
+  description: Localized;
   /** Completes the sentence "<name> — …" in the home page headline. */
   headline: Localized;
   /** Short bio for the home page. One string per paragraph. */
@@ -39,6 +41,10 @@ export interface Profile {
   };
   /** The "BUGS" section of the home page. One known issue per entry. */
   bugs: Localized<string[]>;
+  /** Spoken languages, one line (About page, `neofetch`). */
+  languages: Localized;
+  /** One line, for `neofetch`. */
+  hobbies: Localized;
   socials: { id: SocialId; label: string; handle: string; href: string }[];
   resume: { href: string };
   /** Public repository of this site, linked from the footer. */
@@ -87,6 +93,7 @@ export interface Role {
   start: DateString;
   /** Omit for a current role. */
   end?: DateString;
+  /** One line on what the role is about. */
   summary: Localized;
   highlights: Localized<string[]>;
   stack: string[];
@@ -94,24 +101,18 @@ export interface Role {
 
 export interface SkillGroup {
   name: Localized;
-  items: string[];
+  /** Localized because practices ("Unit testing") translate; names only need `en`. */
+  items: Localized<string[]>;
 }
 
 export interface Education {
-  school: string;
+  school: Localized;
   degree: Localized;
   field: Localized;
   location: Localized;
   start: DateString;
   end: DateString;
-  gpa?: string;
+  /** Written the way each language writes decimals ("3.28" / "3,28"). */
+  gpa?: Localized;
   notes: Localized<string[]>;
-}
-
-export interface Certificate {
-  name: string;
-  issuer: string;
-  date: DateString;
-  credentialId?: string;
-  url?: string;
 }

@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExternalLink } from '@/components/ui/external-link';
 import { MoreLink } from '@/components/ui/more-link';
+import { Pager } from '@/components/ui/pager';
 import { PageTransition, SharedTitle } from '@/components/ui/page-transition';
 import { Section } from '@/components/ui/section';
 import { Status } from '@/components/ui/status';
-import { projectMeta } from '@/features/work/project-rows';
+import { projectMeta } from '@/features/work/project-meta';
 import { isLocale, locales, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getProject, getProjects, getProjectSlugs } from '@/lib/content/site';
-import { JsonLd, pageMetadata } from '@/lib/seo';
+import { JsonLd, pageMetadata, PERSON_ID } from '@/lib/seo';
 import { absoluteUrl } from '@/lib/site';
 
 export const dynamicParams = false;
@@ -39,8 +39,8 @@ export async function generateMetadata({
 export default async function ProjectPage({
   params,
 }: PageProps<'/[locale]/work/[slug]'>) {
-  const { slug } = await params;
-  const locale = (await params).locale as Locale;
+  const { slug, locale: raw } = await params;
+  const locale = raw as Locale;
   const t = getDictionary(locale);
   const project = getProject(slug, locale);
   if (!project) notFound();
@@ -60,11 +60,12 @@ export default async function ProjectPage({
     <PageTransition>
       <JsonLd
         data={{
-          '@type': 'CreativeWork',
+          // codeRepository only exists on SoftwareSourceCode.
+          '@type': project.links.source ? 'SoftwareSourceCode' : 'CreativeWork',
           name: project.title,
           description: project.tagline,
           url: absoluteUrl(`/${locale}/work/${slug}`),
-          author: { '@type': 'Person', name: 'Mustafa Yalçın' },
+          author: { '@id': PERSON_ID },
           keywords: project.stack.join(', '),
           ...(project.links.source && { codeRepository: project.links.source }),
         }}
@@ -80,11 +81,9 @@ export default async function ProjectPage({
         <p className="label">{projectMeta(project, t)}</p>
         <div className="min-w-0">
           <SharedTitle name={`project-${project.slug}`}>
-            <h1 className="text-2xl font-normal tracking-[-0.015em]">
-              {project.title}
-            </h1>
+            <h1 className="text-2xl font-normal">{project.title}</h1>
           </SharedTitle>
-          <p className="mt-4 max-w-prose text-xl text-muted">
+          <p className="mt-4 max-w-measure text-xl text-muted">
             {project.tagline}
           </p>
 
@@ -98,16 +97,6 @@ export default async function ProjectPage({
                 />
               </dd>
             </div>
-            <div>
-              <dt className="text-muted">{t.work.fields.type}</dt>
-              <dd className="mt-1">{t.work.category[project.category]}</dd>
-            </div>
-            {project.year && (
-              <div>
-                <dt className="text-muted">{t.work.fields.year}</dt>
-                <dd className="mt-1">{project.year}</dd>
-              </div>
-            )}
             {links.length > 0 && (
               <div>
                 <dt className="text-muted">{t.work.fields.links}</dt>
@@ -131,25 +120,25 @@ export default async function ProjectPage({
       <div className="sections">
         {project.summary && (
           <Section id="summary" label={t.work.fields.summary}>
-            <p className="max-w-prose text-lg">{project.summary}</p>
+            <p className="max-w-measure text-lg">{project.summary}</p>
           </Section>
         )}
 
         {project.why && (
           <Section id="why" label={t.work.fields.why}>
-            <p className="max-w-prose">{project.why}</p>
+            <p className="max-w-measure">{project.why}</p>
           </Section>
         )}
 
         {project.role && (
           <Section id="role" label={t.work.fields.role}>
-            <p className="max-w-prose">{project.role}</p>
+            <p className="max-w-measure">{project.role}</p>
           </Section>
         )}
 
         {project.highlights.length > 0 && (
           <Section id="highlights" label={t.work.fields.highlights}>
-            <ul className="max-w-prose space-y-2">
+            <ul className="max-w-measure space-y-2">
               {project.highlights.map(item => (
                 <li key={item} className="flex gap-3">
                   <span aria-hidden="true" className="text-faint">
@@ -164,7 +153,7 @@ export default async function ProjectPage({
 
         {project.decisions.length > 0 && (
           <Section id="decisions" label={t.work.fields.decisions}>
-            <ol className="max-w-prose space-y-8">
+            <ol className="max-w-measure space-y-8">
               {project.decisions.map((decision, index) => (
                 <li
                   key={decision.title}
@@ -185,54 +174,41 @@ export default async function ProjectPage({
 
         {project.outcome && (
           <Section id="outcome" label={t.work.fields.outcome}>
-            <p className="max-w-prose">{project.outcome}</p>
+            <p className="max-w-measure">{project.outcome}</p>
           </Section>
         )}
 
         <Section id="stack" label={t.work.fields.stack}>
-          <ul className="flex max-w-prose flex-wrap gap-x-5 gap-y-2 font-mono text-sm">
+          <ul className="flex max-w-measure flex-wrap gap-x-5 gap-y-2 font-mono text-sm">
             {project.stack.map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
           {!hasStory && (
-            <p className="mt-10 max-w-prose text-muted">{t.work.noDetails}</p>
+            <p className="mt-10 max-w-measure text-muted">{t.work.noDetails}</p>
           )}
         </Section>
       </div>
 
-      {(previous || next) && (
-        <nav
-          aria-label={t.work.allWork}
-          className="mt-24 grid gap-6 border-t border-line pt-8 sm:grid-cols-2"
-        >
-          {previous ? (
-            <Link href={`/${locale}/work/${previous.slug}`} className="group">
-              <span className="block font-mono text-xs text-muted">
-                ← {t.work.previous}
-              </span>
-              <span className="mt-1 block text-lg transition-colors duration-(--dur-fast) group-hover:text-accent-ink">
-                {previous.title}
-              </span>
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next && (
-            <Link
-              href={`/${locale}/work/${next.slug}`}
-              className="group sm:text-right"
-            >
-              <span className="block font-mono text-xs text-muted">
-                {t.work.next} →
-              </span>
-              <span className="mt-1 block text-lg transition-colors duration-(--dur-fast) group-hover:text-accent-ink">
-                {next.title}
-              </span>
-            </Link>
-          )}
-        </nav>
-      )}
+      <div className="mt-24 border-t border-line pt-8">
+        <Pager
+          label={t.work.pager}
+          previous={
+            previous && {
+              href: `/${locale}/work/${previous.slug}`,
+              label: t.work.previous,
+              title: previous.title,
+            }
+          }
+          next={
+            next && {
+              href: `/${locale}/work/${next.slug}`,
+              label: t.work.next,
+              title: next.title,
+            }
+          }
+        />
+      </div>
     </PageTransition>
   );
 }

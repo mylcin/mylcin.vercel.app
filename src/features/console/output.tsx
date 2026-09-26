@@ -40,10 +40,6 @@ export function Strong({ children }: { children: React.ReactNode }) {
   return <span className="font-semibold text-fg">{children}</span>;
 }
 
-export function Accent({ children }: { children: React.ReactNode }) {
-  return <span className="text-accent-ink">{children}</span>;
-}
-
 export function ErrorText({ children }: { children: React.ReactNode }) {
   return <span className="text-err">{children}</span>;
 }
@@ -66,6 +62,7 @@ export function Cmd({
     <button
       type="button"
       onClick={() => (run ? actions?.run(run) : actions?.fill(command))}
+      data-command={command}
       className={cx(
         'cursor-pointer rounded-sm text-left underline decoration-line-strong decoration-dotted underline-offset-4 transition-colors duration-(--dur-fast) hover:text-accent-ink hover:decoration-current',
         className

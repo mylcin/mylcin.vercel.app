@@ -11,3 +11,13 @@ const dictionaries: Record<Locale, Dictionary> = { en, tr };
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale];
 }
+
+/** What client components get: everything except server-only metadata copy. */
+export type ClientDictionary = Omit<Dictionary, 'meta'>;
+
+export function clientMessages({
+  meta: _meta,
+  ...rest
+}: Dictionary): ClientDictionary {
+  return rest;
+}

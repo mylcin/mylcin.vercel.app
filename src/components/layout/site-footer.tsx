@@ -5,7 +5,6 @@ import { getT } from '@/i18n/server';
 import { format, formatDate } from '@/i18n/format';
 import { getProfile } from '@/lib/content/site';
 import { BUILD_DATE } from '@/lib/site';
-import { LanguageSwitch } from './language-switch';
 import { LocalTime } from './local-time';
 import { ThemeToggle } from './theme-toggle';
 
@@ -16,22 +15,29 @@ export async function SiteFooter() {
   return (
     <footer className="mx-auto mt-28 max-w-page px-4 pb-8 sm:px-5 md:mt-40 md:px-8">
       <div className="flex flex-col gap-6 border-t border-line pt-8 md:flex-row md:items-end md:justify-between">
-        <div className="min-w-0 md:shrink-0">
-          <p className="mb-2 label">{t.about.sections.contact}</p>
+        {/* The one contact block on the site; /about#contact lands here. */}
+        <section
+          id="contact"
+          aria-labelledby="contact-heading"
+          className="min-w-0"
+        >
+          <h2 id="contact-heading" className="mb-2 label">
+            {t.about.sections.contact}
+          </h2>
           <CopyButton
             text={profile.email}
             copiedLabel={t.controls.emailCopied}
             data-testid="footer-email-copy"
-            className="group -ml-1 inline-flex max-w-full items-center gap-2 rounded-md px-1 text-left text-lg transition-colors duration-(--dur-fast) hover:text-accent-ink"
+            className="group inline-flex max-w-full items-center gap-2 rounded-md text-left text-lg transition-colors duration-(--dur-fast) hover:text-accent-ink"
             idle={
-              <CopyIcon className="text-muted group-hover:text-accent-ink" />
+              <CopyIcon className="shrink-0 text-muted group-hover:text-accent-ink" />
             }
-            done={<CheckIcon className="text-accent-ink" />}
+            done={<CheckIcon className="shrink-0 text-accent-ink" />}
           >
-            <span className="truncate">{profile.email}</span>
+            <span className="break-all">{profile.email}</span>
             <span className="sr-only">, {t.controls.copyEmail}</span>
           </CopyButton>
-        </div>
+        </section>
 
         <ul className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-sm text-muted">
           {profile.socials.map(social => (
@@ -41,6 +47,11 @@ export async function SiteFooter() {
               </ExternalLink>
             </li>
           ))}
+          <li>
+            <a href={profile.resume.href} className="hover:text-fg">
+              {t.footer.resume}
+            </a>
+          </li>
           <li>
             <a href={`/${locale}/blog/feed.xml`} className="hover:text-fg">
               {t.footer.rss}
@@ -69,8 +80,7 @@ export async function SiteFooter() {
         </span>
         <div className="flex items-center justify-between gap-4">
           <span aria-hidden="true">{profile.handle.toUpperCase()}(1)</span>
-          <div className="flex items-center gap-2 md:hidden">
-            <LanguageSwitch />
+          <div className="md:hidden">
             <ThemeToggle />
           </div>
         </div>

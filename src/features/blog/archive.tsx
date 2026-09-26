@@ -29,7 +29,7 @@ export function ArchiveView({
   const years = [...new Set(visible.map(post => post.date.slice(0, 4)))];
 
   return (
-    <div className="sections">
+    <div className="sections" data-testid="post-archive">
       {tags.length > 1 && (
         <div className="section">
           <p className="label" id="tag-filter-label">
@@ -38,7 +38,7 @@ export function ArchiveView({
           <div>
             <ul
               aria-labelledby="tag-filter-label"
-              className="flex flex-wrap gap-x-1 gap-y-2 font-mono text-sm"
+              className="-ml-2 flex flex-wrap gap-y-1 font-mono text-sm"
             >
               {[null, ...tags].map(tag => {
                 const current = tag === activeTag;
@@ -54,10 +54,11 @@ export function ArchiveView({
                       replace
                       aria-current={current ? 'true' : undefined}
                       className={cx(
-                        'inline-flex h-8 items-center rounded-md px-2 transition-colors duration-(--dur-fast)',
+                        'relative inline-flex h-8 items-center px-2 transition-colors duration-(--dur-fast)',
+                        // Same "you are here" mark as the main navigation.
                         current
-                          ? 'bg-fg text-bg'
-                          : 'text-muted hover:bg-raised hover:text-fg'
+                          ? 'text-fg after:absolute after:inset-x-2 after:bottom-1 after:h-px after:bg-accent'
+                          : 'text-muted hover:text-fg'
                       )}
                     >
                       {tag ? `#${tag}` : t.blog.allTags}
@@ -66,23 +67,26 @@ export function ArchiveView({
                 );
               })}
             </ul>
-            {activeTag && (
-              <p role="status" className="mt-4 font-mono text-xs text-muted">
-                {visible.length
+            {/* Always mounted, so screen readers announce every change. */}
+            <p
+              role="status"
+              className="mt-4 font-mono text-xs text-muted empty:hidden"
+            >
+              {activeTag
+                ? visible.length
                   ? plural(locale, visible.length, t.blog.filtered, {
                       tag: `#${activeTag}`,
                     })
-                  : null}
-              </p>
-            )}
+                  : format(t.blog.noMatches, { tag: `#${activeTag}` })
+                : ''}
+            </p>
           </div>
         </div>
       )}
 
       {visible.length === 0 ? (
         <div className="section" data-testid="post-list-empty">
-          <span />
-          <div>
+          <div className="md:col-start-2">
             <p>
               {activeTag
                 ? format(t.blog.noMatches, { tag: `#${activeTag}` })

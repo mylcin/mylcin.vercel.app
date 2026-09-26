@@ -40,7 +40,20 @@ const index = {
       slug: 'hello-world',
       title: 'Hello',
       translations: ['en', 'tr'],
-      titles: { en: 'Hello', tr: 'Merhaba' },
+      variants: {
+        en: {
+          title: 'Hello',
+          description: 'd',
+          excerpt: 'e',
+          readingMinutes: 1,
+        },
+        tr: {
+          title: 'Merhaba',
+          description: 'a',
+          excerpt: 'ö',
+          readingMinutes: 1,
+        },
+      },
       date: '2025-01-01',
     },
   ],
@@ -52,7 +65,6 @@ const root = buildFs(index, {
     experience: 'E',
     skills: 'S',
     education: 'Ed',
-    certificates: 'C',
     contact: 'Co',
   },
   readme: 'r',
@@ -168,6 +180,15 @@ describe('completion', () => {
       'blog/',
       'about/',
     ]);
+  });
+
+  it('completes the command after && or ;', () => {
+    expect(complete('cd work && ca', { commands, root, cwd: '/' }).value).toBe(
+      'cd work && cat '
+    );
+    expect(complete('ls; cd wo', { commands, root, cwd: '/' }).value).toBe(
+      'ls; cd work/'
+    );
   });
 
   it('completes enumerated values', () => {

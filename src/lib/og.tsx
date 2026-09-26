@@ -1,4 +1,8 @@
 import { ImageResponse } from 'next/og';
+import { defaultLocale, isLocale, locales } from '@/i18n/config';
+import { getDictionary } from '@/i18n/dictionaries';
+import { format } from '@/i18n/format';
+import { getProfile } from './content/site';
 import { SITE_URL } from './site';
 
 /**
@@ -41,7 +45,7 @@ export async function ogImage({
   subtitle?: string;
   footer: string;
 }) {
-  const head = 'MUSTAFA(1)';
+  const head = `${getProfile(defaultLocale).handle.toUpperCase()}(1)`;
   const serifText = `${title}${subtitle ?? ''}`;
   const monoText = `${head}${eyebrow}${footer}`;
 
@@ -143,3 +147,36 @@ export async function ogImage({
 }
 
 export const ogHost = SITE_URL.replace(/^https?:\/\//, '');
+
+/** The image's alt text: the author's name (the card itself says the rest). */
+export const ogAlt = getProfile(defaultLocale).name;
+
+export function localeParams() {
+  return locales.map(locale => ({ locale }));
+}
+
+/** Default export for a section's opengraph-image.tsx (work, blog, about). */
+export function sectionOgImage(section: 'work' | 'blog' | 'about') {
+  return async function Image({
+    params,
+  }: {
+    params: Promise<{ locale: string }>;
+  }) {
+    const { locale: raw } = await params;
+    const locale = isLocale(raw) ? raw : defaultLocale;
+    const t = getDictionary(locale);
+    const { name } = getProfile(locale);
+    const copy = {
+      work: {
+        title: t.work.title,
+        subtitle: format(t.meta.workDescription, { name }),
+      },
+      blog: { title: t.blog.title, subtitle: t.meta.blogDescription },
+      about: {
+        title: t.about.title,
+        subtitle: format(t.meta.aboutDescription, { name }),
+      },
+    }[section];
+    return ogImage({ eyebrow: name, ...copy, footer: `${ogHost}/${section}` });
+  };
+}

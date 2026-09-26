@@ -27,14 +27,44 @@ function commonPrefix(words: string[]): string {
   return prefix;
 }
 
+/** Index just past the last unquoted `&&` or `;` — where the current command starts. */
+function lastCommandStart(input: string): number {
+  let quote: string | null = null;
+  let start = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    if (quote) {
+      if (char === quote) quote = null;
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === ';') {
+      start = i + 1;
+    } else if (char === '&' && input[i + 1] === '&') {
+      start = i + 2;
+      i++;
+    }
+  }
+  return start;
+}
+
 export function complete(
   input: string,
-  context: { commands: Completable[]; root: DirNode; cwd: string }
+  context: {
+    commands: Completable[];
+    root: DirNode;
+    cwd: string;
+    handle?: string;
+  }
 ): Completion {
-  const endsWithSpace = /\s$/.test(input);
-  const parts = input.trimStart().split(/\s+/);
+  // Only the command after the last `&&` / `;` is being completed.
+  const offset = lastCommandStart(input);
+  const prefix = input.slice(0, offset);
+  const current = input.slice(offset);
+
+  const endsWithSpace = /\s$/.test(current);
+  const parts = current.trimStart().split(/\s+/);
   const partial = endsWithSpace ? '' : (parts.pop() ?? '');
-  const head = input.slice(0, input.length - partial.length);
+  const head = prefix + current.slice(0, current.length - partial.length);
   const done = (value: string, options: string[] = []) => ({ value, options });
 
   // Completing the command name.
@@ -48,7 +78,8 @@ export function complete(
     return done(`${head}${commonPrefix(names) || partial}`, names);
   }
 
-  const name = parts[0].toLowerCase();
+  const typed = parts[0].toLowerCase();
+  const name = typed === context.handle ? 'mustafa' : typed;
   const command = context.commands.find(
     c => c.name === name || c.aliases?.includes(name)
   );

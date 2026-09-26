@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { Status } from '@/components/ui/status';
-import type { Dictionary } from '@/i18n/dictionaries';
+import type { ClientDictionary } from '@/i18n/dictionaries';
+import type { Locale } from '@/i18n/config';
 import type { ProjectView } from '@/lib/content/site';
-import { projectMeta } from './project-rows';
+import { projectMeta } from './project-meta';
 
 /** The middle level between a list row and the full case study. */
 export function ProjectPreview({
@@ -11,8 +12,8 @@ export function ProjectPreview({
   t,
 }: {
   project: ProjectView;
-  locale: string;
-  t: Dictionary;
+  locale: Locale;
+  t: ClientDictionary;
 }) {
   const story = project.why ?? project.summary;
   return (
@@ -26,9 +27,13 @@ export function ProjectPreview({
 
       {story && <p className="mt-5 line-clamp-5">{story}</p>}
 
-      <p className="mt-5 font-mono text-xs leading-relaxed text-muted">
-        {project.stack.join(' · ')}
-      </p>
+      <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-muted">
+        {project.stack.map(item => (
+          <li key={item} className="whitespace-nowrap">
+            {item}
+          </li>
+        ))}
+      </ul>
 
       <Link
         href={`/${locale}/work/${project.slug}`}

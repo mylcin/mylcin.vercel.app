@@ -1,12 +1,14 @@
+import { notFound } from 'next/navigation';
 import { defaultLocale, isLocale, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { formatDate, plural } from '@/i18n/format';
 import { getPost, getPostSlugs } from '@/lib/content/blog';
-import { ogContentType, ogHost, ogImage, ogSize } from '@/lib/og';
+import { ogAlt, ogContentType, ogHost, ogImage, ogSize } from '@/lib/og';
 
-export const alt = 'Mustafa Yalçın — Blog';
+export const alt = ogAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const slugs = await getPostSlugs();
@@ -22,12 +24,7 @@ export default async function Image({
   const locale = isLocale(raw) ? raw : defaultLocale;
   const t = getDictionary(locale);
   const post = await getPost(slug, locale);
-  if (!post)
-    return ogImage({
-      eyebrow: t.blog.title,
-      title: t.notFound.title,
-      footer: ogHost,
-    });
+  if (!post) notFound();
   return ogImage({
     eyebrow: `${formatDate(post.date, locale, 'short')} · ${plural(locale, post.readingMinutes, t.blog.readingTime)}`,
     title: post.title,

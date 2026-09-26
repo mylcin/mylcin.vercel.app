@@ -23,7 +23,9 @@ export function NavLinks({
           <li key={item.href}>
             <Link
               href={item.href}
-              aria-current={current ? 'page' : undefined}
+              aria-current={
+                path === item.section ? 'page' : current ? 'true' : undefined
+              }
               className={cx(
                 'relative py-2 lowercase transition-colors duration-(--dur-fast)',
                 current

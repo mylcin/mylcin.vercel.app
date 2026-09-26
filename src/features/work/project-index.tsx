@@ -8,7 +8,7 @@ import { useI18n } from '@/i18n/client';
 import type { ProjectView } from '@/lib/content/site';
 import { cx } from '@/lib/cx';
 import { ProjectPreview } from './project-preview';
-import { projectMeta } from './project-rows';
+import { projectMeta } from './project-meta';
 
 /**
  * Quick scan on the left, preview on the right (wide screens). Hover or focus
@@ -38,10 +38,10 @@ export function ProjectIndex({ projects }: { projects: ProjectView[] }) {
     next.focus();
   }
 
-  if (!current) return <p data-testid="project-list-empty">{t.work.empty}</p>;
+  if (!current) return <p data-testid="project-index-empty">{t.work.empty}</p>;
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-16">
+    <div className="grid gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] xl:gap-14">
       <div>
         <div
           aria-hidden="true"
@@ -64,13 +64,15 @@ export function ProjectIndex({ projects }: { projects: ProjectView[] }) {
                 href={`/${locale}/work/${project.slug}`}
                 onMouseEnter={() => setActive(project.slug)}
                 onFocus={() => setActive(project.slug)}
-                aria-describedby={`tagline-${project.slug}`}
                 className={cx(
                   'group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 gap-y-1 py-5 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:items-baseline',
                   'transition-colors duration-(--dur-fast)'
                 )}
               >
-                <span className="font-mono text-xs text-muted">
+                <span
+                  aria-hidden="true"
+                  className="font-mono text-xs text-muted"
+                >
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <span className="min-w-0">
@@ -78,7 +80,7 @@ export function ProjectIndex({ projects }: { projects: ProjectView[] }) {
                     <span
                       className={cx(
                         'block text-lg leading-snug transition-colors duration-(--dur-fast) group-hover:text-accent-ink',
-                        project.slug === current.slug && 'lg:text-accent-ink'
+                        project.slug === current.slug && 'xl:text-accent-ink'
                       )}
                     >
                       {project.title}
@@ -87,10 +89,8 @@ export function ProjectIndex({ projects }: { projects: ProjectView[] }) {
                   <span className="mt-0.5 block font-mono text-xs text-muted">
                     {projectMeta(project, t)}
                   </span>
-                  <span
-                    id={`tagline-${project.slug}`}
-                    className="mt-2 block text-muted lg:sr-only"
-                  >
+                  {/* Visible until the preview panel takes over; always part of the name. */}
+                  <span className="mt-2 block text-muted xl:sr-only">
                     {project.tagline}
                   </span>
                 </span>
@@ -106,13 +106,13 @@ export function ProjectIndex({ projects }: { projects: ProjectView[] }) {
         </ol>
         <p
           aria-hidden="true"
-          className="mt-4 hidden font-mono text-xs text-muted lg:block"
+          className="mt-4 hidden font-mono text-xs text-muted xl:block"
         >
           {t.work.keyboardHint}
         </p>
       </div>
 
-      <aside aria-hidden="true" className="hidden lg:block">
+      <aside aria-hidden="true" className="hidden xl:block">
         <div className="sticky top-10 border-l border-line pl-8">
           <ProjectPreview
             key={current.slug}

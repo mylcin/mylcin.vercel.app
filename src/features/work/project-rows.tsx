@@ -1,14 +1,10 @@
 import Link from 'next/link';
 import { SharedTitle } from '@/components/ui/page-transition';
 import { Status } from '@/components/ui/status';
-import type { Dictionary } from '@/i18n/dictionaries';
+import type { ClientDictionary } from '@/i18n/dictionaries';
+import type { Locale } from '@/i18n/config';
 import type { ProjectView } from '@/lib/content/site';
-
-export function projectMeta(project: ProjectView, t: Dictionary) {
-  return [t.work.category[project.category], project.year]
-    .filter(Boolean)
-    .join(' · ');
-}
+import { projectMeta } from './project-meta';
 
 /** Compact project list: title, leader, meta, tagline. Used on the home page. */
 export function ProjectRows({
@@ -17,8 +13,8 @@ export function ProjectRows({
   t,
 }: {
   projects: ProjectView[];
-  locale: string;
-  t: Dictionary;
+  locale: Locale;
+  t: ClientDictionary;
 }) {
   return (
     <ul data-testid="project-list" className="-mt-3 divide-y divide-line">

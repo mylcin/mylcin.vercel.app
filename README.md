@@ -26,13 +26,13 @@ production domain.
 Everything you'd normally change lives in `content/`. No UI code needs to be
 touched to add a project, a post, a job or a translation.
 
-| What                               | Where                                |
-| ---------------------------------- | ------------------------------------ |
-| Name, bio, socials, résumé link    | `content/profile.ts`                 |
-| Projects (order = display order)   | `content/projects.ts`                |
-| Experience, skills, education, certificates | `content/resume.ts`         |
-| Blog posts                         | `content/blog/<slug>/<locale>.mdx`   |
-| UI copy (buttons, labels, console) | `src/i18n/dictionaries/{en,tr}.ts`   |
+| What                               | Where                                             |
+| ---------------------------------- | ------------------------------------------------- |
+| Name, bio, socials, résumé link    | `content/profile.ts`                              |
+| Projects (order = display order)   | `content/projects.ts`                             |
+| Experience, skills, education      | `content/resume.ts` (mirrors `public/resume.pdf`) |
+| Blog posts                         | `content/blog/<slug>/<locale>.mdx`                |
+| UI copy (buttons, labels, console) | `src/i18n/dictionaries/{en,tr}.ts`                |
 
 Translated fields look like `{ en: '…', tr: '…' }`. Only `en` is required;
 anything missing falls back to English, so content can be translated gradually.
@@ -82,9 +82,14 @@ Search engines are pointed at the original.
 ## How it's built
 
 - **Next.js 16** (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4.
-- **Every page is static.** Routes live under `src/app/[locale]/`; `src/proxy.ts`
-  sends unprefixed URLs (`/`, old `/blog/<slug>` links) to a locale using the
-  visitor's saved choice, then their browser language.
+- **Every page is static.** Routes live under `src/app/[locale]/(site)/`;
+  `src/proxy.ts` sends unprefixed URLs to a locale using the visitor's saved
+  choice, then their browser language. Old `/blog/<slug>` links get a permanent
+  redirect to the English post.
+- **404s.** Unknown URLs are unmatched and get `app/global-not-found.tsx`,
+  fully server-rendered in the URL's language (the proxy passes it along). In
+  this Next version a 404 thrown by `notFound()` from a page is rendered on the
+  client only, so pages avoid needing it: slugs are all pre-generated.
 - **Posts are MDX compiled on the server** (`@mdx-js/mdx` + `rehype-pretty-code`).
   No MDX runtime ships to the browser. Code colors are CSS variables, so syntax
   highlighting uses the site palette in both themes.
@@ -96,7 +101,7 @@ content/                 what the site says (edit this)
 src/
   app/                   routes, metadata, sitemap, robots, OG images
   components/
-    ui/                  primitives: Button, Section, Status, CopyButton…
+    ui/                  primitives: buttonClass, Section, Status, Pager, CopyButton…
     layout/              header, footer, language/theme switches
     mdx/                 how Markdown renders (headings, code blocks, links)
   features/
@@ -129,8 +134,11 @@ radii and easings are reset, so only the site's tokens exist as utilities.
   parser (quotes, `&&`, `;`), tab completion, typo suggestions. Unit-tested.
 - `commands/` — `ls`, `cd`, `cat`, `open`, `grep`, `man`, `lang`, `theme`,
   `neofetch`… plus a few undocumented ones.
-- `console-panel.tsx` — the UI, a native `<dialog>`. Code-split: it only loads
-  when opened (or when the trigger is hovered).
+- `commands/run.tsx` — runs a command line against a small host interface
+  (navigate, copy, switch theme…), so commands are testable without a browser.
+- `console-panel.tsx` — the UI, a native `<dialog>`. Code-split: its code only
+  loads when opened (or when the trigger is hovered). The site index it browses
+  is a few KB of data in the page, like the rest of the layout.
 
 To switch it off, remove `<ConsoleProvider>` from `src/app/[locale]/layout.tsx`.
 Everything that uses it (the header trigger, the home page's "run it" button,

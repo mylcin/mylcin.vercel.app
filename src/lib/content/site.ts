@@ -1,7 +1,6 @@
 import { profile as rawProfile } from '@content/profile';
 import { projects as rawProjects } from '@content/projects';
 import {
-  certificates,
   education as rawEducation,
   experience as rawExperience,
   skills as rawSkills,
@@ -26,6 +25,7 @@ export function getProfile(locale: Locale) {
       country: localize(p.location.country, locale),
       timeZone: p.location.timeZone,
     },
+    description: localize(p.description, locale),
     headline: localize(p.headline, locale),
     intro: localize(p.intro, locale),
     about: localize(p.about, locale),
@@ -38,13 +38,13 @@ export function getProfile(locale: Locale) {
       summary: localize(p.synopsis.summary, locale),
     },
     bugs: localize(p.bugs, locale),
+    languages: localize(p.languages, locale),
+    hobbies: localize(p.hobbies, locale),
     socials: p.socials,
     resume: p.resume,
     sourceUrl: p.sourceUrl,
   };
 }
-
-export type ProfileView = ReturnType<typeof getProfile>;
 
 function resolveProject(project: Project, locale: Locale) {
   return {
@@ -112,28 +112,29 @@ export function getExperience(locale: Locale): RoleView[] {
   return rawExperience.map(role => resolveRole(role, locale));
 }
 
+/** The role without an end date, if any. */
+export function currentRole(locale: Locale): RoleView | undefined {
+  return getExperience(locale).find(role => !role.end);
+}
+
 export function getSkills(locale: Locale) {
   return rawSkills.map(group => ({
     name: localize(group.name, locale),
-    items: group.items,
+    items: localize(group.items, locale),
   }));
 }
 
 export function getEducation(locale: Locale) {
   return rawEducation.map(entry => ({
-    school: entry.school,
+    school: localize(entry.school, locale),
     degree: localize(entry.degree, locale),
     field: localize(entry.field, locale),
     location: localize(entry.location, locale),
     start: entry.start,
     end: entry.end,
-    gpa: entry.gpa,
+    gpa: entry.gpa && localize(entry.gpa, locale),
     notes: localize(entry.notes, locale),
   }));
-}
-
-export function getCertificates() {
-  return certificates;
 }
 
 /** Start of the first non-internship role — "in production since". */

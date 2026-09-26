@@ -1,5 +1,6 @@
 import { isLocale, localeMeta, locales } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
+import { format } from '@/i18n/format';
 import { getPosts } from '@/lib/content/blog';
 import { getProfile } from '@/lib/content/site';
 import { absoluteUrl } from '@/lib/site';
@@ -43,7 +44,7 @@ ${post.tags.map(tag => `      <category>${escape(tag)}</category>`).join('\n')}
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${escape(t.blog.feedTitle)}</title>
+    <title>${escape(format(t.blog.feedTitle, { name: profile.name }))}</title>
     <link>${blogUrl}</link>
     <description>${escape(t.meta.blogDescription)}</description>
     <language>${localeMeta[locale].intl}</language>

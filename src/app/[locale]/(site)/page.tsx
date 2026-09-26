@@ -9,8 +9,8 @@ import { ProjectRows } from '@/features/work/project-rows';
 import { isLocale, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getPosts } from '@/lib/content/blog';
-import { getExperience, getProfile, getProjects } from '@/lib/content/site';
-import { JsonLd, pageMetadata } from '@/lib/seo';
+import { currentRole, getProfile, getProjects } from '@/lib/content/site';
+import { JsonLd, pageMetadata, PERSON_ID } from '@/lib/seo';
 import { absoluteUrl } from '@/lib/site';
 
 export async function generateMetadata({
@@ -18,12 +18,12 @@ export async function generateMetadata({
 }: PageProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const t = getDictionary(locale);
+  const profile = getProfile(locale);
   return pageMetadata({
     locale,
     path: '/',
-    title: t.home.title,
-    description: t.meta.description,
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.description,
     absoluteTitle: true,
     type: 'profile',
   });
@@ -35,7 +35,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const profile = getProfile(locale);
   const featured = getProjects(locale).filter(project => project.featured);
   const posts = (await getPosts(locale)).slice(0, 3);
-  const employer = getExperience(locale).find(role => !role.end);
+  const employer = currentRole(locale);
   const manual = `${profile.handle.toUpperCase()}(1)`;
 
   return (
@@ -43,6 +43,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <JsonLd
         data={{
           '@type': 'Person',
+          '@id': PERSON_ID,
           name: profile.name,
           url: absoluteUrl(`/${locale}`),
           jobTitle: profile.role,
@@ -73,11 +74,9 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       </div>
 
       <div className="sections">
-        <Section id="name" label={t.home.sections.name}>
-          <h1 className="text-display font-normal tracking-[-0.02em]">
-            {profile.name}
-          </h1>
-          <p className="mt-4 max-w-prose text-xl text-muted">
+        <Section id="name" label={t.home.sections.name} labelAs="p">
+          <h1 className="text-display font-normal">{profile.name}</h1>
+          <p className="mt-4 max-w-measure text-xl text-muted">
             — {profile.headline}
           </p>
         </Section>
@@ -91,7 +90,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         </Section>
 
         <Section id="description" label={t.home.sections.description}>
-          <div className="max-w-prose space-y-4">
+          <div className="max-w-measure space-y-4">
             {profile.intro.map(paragraph => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -140,7 +139,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         </Section>
 
         <Section id="bugs" label={t.home.sections.bugs}>
-          <ul className="max-w-prose space-y-2">
+          <ul className="max-w-measure space-y-2">
             {profile.bugs.map(bug => (
               <li key={bug}>{bug}</li>
             ))}

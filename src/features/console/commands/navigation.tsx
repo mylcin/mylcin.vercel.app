@@ -19,9 +19,12 @@ function notFound(ctx: CommandContext, command: string, path: string) {
   );
 }
 
-/** Clickable name: directories `cd`, files `cat`. */
-function Entry({ node, cwd }: { node: FsNode; cwd: string }) {
-  const target = relativePath(cwd, node.path);
+/**
+ * Clickable name: directories `cd`, files `cat`. The command uses an absolute
+ * path so it still works after the working directory has moved on.
+ */
+function Entry({ node }: { node: FsNode }) {
+  const target = displayPath(node.path);
   return node.kind === 'dir' ? (
     <Cmd run={`cd ${target}`} className="font-semibold text-fg">
       {node.name}/
@@ -43,14 +46,14 @@ export const ls: Command = {
     const path = resolvePath(ctx.cwd, args[0] ?? '.');
     const node = lookup(ctx.root, path);
     if (!node) return notFound(ctx, 'ls', args[0]);
-    if (node.kind === 'file') return <Entry node={node} cwd={ctx.cwd} />;
+    if (node.kind === 'file') return <Entry node={node} />;
     if (!node.children.length) return <Muted>{ctx.t.console.out.empty}</Muted>;
 
     if (!long) {
       return (
         <div className="flex flex-wrap gap-x-6 gap-y-1">
           {node.children.map(child => (
-            <Entry key={child.path} node={child} cwd={ctx.cwd} />
+            <Entry key={child.path} node={child} />
           ))}
         </div>
       );
@@ -58,7 +61,7 @@ export const ls: Command = {
     return (
       <Rows
         rows={node.children.map(child => [
-          <Entry key="name" node={child} cwd={ctx.cwd} />,
+          <Entry key="name" node={child} />,
           <Muted key="meta">{child.meta ?? ''}</Muted>,
           <span key="title">{child.title ?? ''}</span>,
         ])}
@@ -74,10 +77,13 @@ export const cd: Command = {
   run(ctx, { args }) {
     const input = args[0] ?? '~';
     if (input === '-') {
-      if (!ctx.previousCwd) return null;
-      const previous = lookup(ctx.root, ctx.previousCwd);
-      if (previous?.kind === 'dir') ctx.cd(previous.path, previous.href);
-      return <Muted>{displayPath(ctx.previousCwd)}</Muted>;
+      const target = ctx.previousCwd;
+      const previous = target ? lookup(ctx.root, target) : null;
+      if (previous?.kind !== 'dir') {
+        return fail(<ErrorText>{ctx.t.console.out.oldpwdNotSet}</ErrorText>);
+      }
+      ctx.cd(previous.path, previous.href);
+      return <Muted>{displayPath(previous.path)}</Muted>;
     }
     const node = lookup(ctx.root, resolvePath(ctx.cwd, input));
     if (!node) return notFound(ctx, 'cd', input);
@@ -103,6 +109,7 @@ export const pwd: Command = {
 
 export const open: Command = {
   name: 'open',
+  needsArgument: true,
   aliases: ['xdg-open'],
   usage: 'open <path | github | linkedin | instagram | email>',
   completer: { kind: 'path' },
@@ -166,6 +173,7 @@ export const open: Command = {
 
 export const cat: Command = {
   name: 'cat',
+  needsArgument: true,
   aliases: ['less', 'more', 'bat'],
   usage: 'cat <file>',
   completer: { kind: 'path' },
@@ -190,23 +198,41 @@ export const cat: Command = {
         </ErrorText>
       );
     }
-    return <FileView ctx={ctx} file={node} />;
+    // cwd is read now: output renders later, after a chained `cd` may have run.
+    return <FileView ctx={ctx} file={node} cwd={ctx.cwd} />;
   },
 };
 
-function OpenHint({ ctx, file }: { ctx: CommandContext; file: FileNode }) {
-  const path = relativePath(ctx.cwd, file.path);
+function OpenHint({
+  ctx,
+  file,
+  cwd,
+}: {
+  ctx: CommandContext;
+  file: FileNode;
+  cwd: string;
+}) {
   const [before, after] = ctx.t.console.out.readMore.split('{path}');
   return (
     <Line className="mt-[1lh] text-muted">
       {before}
-      <Cmd run={`open ${path}`}>{path}</Cmd>
+      <Cmd run={`open ${displayPath(file.path)}`}>
+        {relativePath(cwd, file.path)}
+      </Cmd>
       {after}
     </Line>
   );
 }
 
-function FileView({ ctx, file }: { ctx: CommandContext; file: FileNode }) {
+function FileView({
+  ctx,
+  file,
+  cwd,
+}: {
+  ctx: CommandContext;
+  file: FileNode;
+  cwd: string;
+}) {
   const { t, locale, index } = ctx;
   const { content } = file;
 
@@ -224,7 +250,10 @@ function FileView({ ctx, file }: { ctx: CommandContext; file: FileNode }) {
             </p>
           ))}
           <Line className="mt-[1lh] text-muted">
-            → <Cmd run="man mustafa">man {index.profile.handle}</Cmd>
+            →{' '}
+            <Cmd run={`man ${index.profile.handle}`}>
+              man {index.profile.handle}
+            </Cmd>
           </Line>
         </>
       );
@@ -235,7 +264,7 @@ function FileView({ ctx, file }: { ctx: CommandContext; file: FileNode }) {
           <ErrorText>
             {format(t.console.out.binaryFile, { file: file.name })}
           </ErrorText>{' '}
-          <Cmd run={`open ${relativePath(ctx.cwd, file.path)}`}>open</Cmd>
+          <Cmd run={`open ${displayPath(file.path)}`}>open</Cmd>
         </Line>
       );
 
@@ -276,43 +305,46 @@ function FileView({ ctx, file }: { ctx: CommandContext; file: FileNode }) {
               <Ext href={project.links.source}>{project.links.source}</Ext>
             </Line>
           )}
-          <OpenHint ctx={ctx} file={file} />
+          <OpenHint ctx={ctx} file={file} cwd={cwd} />
         </>
       );
     }
 
     case 'post': {
       const post = index.posts.find(p => p.slug === content.slug)!;
-      const sameLanguage = post.lang === content.lang;
+      // The file's own translation, not whichever one this page shows.
+      const text = post.variants[content.lang] ?? post;
       return (
         <>
-          <Line>
-            <Strong>
-              {sameLanguage
-                ? post.title
-                : (post.titles[content.lang] ?? post.title)}
-            </Strong>
-          </Line>
+          <div lang={content.lang}>
+            <Line>
+              <Strong>{text.title}</Strong>
+            </Line>
+          </div>
           <Line className="text-muted">
             {formatDate(post.date, locale, 'long')} ·{' '}
-            {plural(locale, post.readingMinutes, t.blog.readingTime)} · #
+            {plural(locale, text.readingMinutes, t.blog.readingTime)} · #
             {post.tags.join(' #')}
           </Line>
           <Gap />
-          <p>{sameLanguage ? post.description : post.excerpt}</p>
-          {sameLanguage && post.excerpt && (
-            <>
-              <Gap />
-              <p className="text-muted">{post.excerpt}</p>
-            </>
-          )}
-          <OpenHint ctx={ctx} file={file} />
+          <div lang={content.lang}>
+            <p>{text.description}</p>
+            {text.excerpt && (
+              <>
+                <Gap />
+                <p className="text-muted">{text.excerpt}</p>
+              </>
+            )}
+          </div>
+          <OpenHint ctx={ctx} file={file} cwd={cwd} />
         </>
       );
     }
 
     case 'about':
-      return <AboutFile ctx={ctx} section={content.section} file={file} />;
+      return (
+        <AboutFile ctx={ctx} section={content.section} file={file} cwd={cwd} />
+      );
   }
 }
 
@@ -320,9 +352,11 @@ function AboutFile({
   ctx,
   section,
   file,
+  cwd,
 }: {
   ctx: CommandContext;
-  section: 'experience' | 'skills' | 'education' | 'certificates' | 'contact';
+  cwd: string;
+  section: 'experience' | 'skills' | 'education' | 'contact';
   file: FileNode;
 }) {
   const { t, locale, index } = ctx;
@@ -350,7 +384,7 @@ function AboutFile({
               <Line className="text-muted">{role.summary}</Line>
             </div>
           ))}
-          <OpenHint ctx={ctx} file={file} />
+          <OpenHint ctx={ctx} file={file} cwd={cwd} />
         </>
       );
     case 'skills':
@@ -381,22 +415,6 @@ function AboutFile({
           ))}
         </>
       );
-    case 'certificates':
-      return (
-        <Rows
-          rows={about.certificates.map(cert => [
-            <Muted key="date">{monthYear(cert.date)}</Muted>,
-            cert.url ? (
-              <Ext key="name" href={cert.url}>
-                {cert.name}
-              </Ext>
-            ) : (
-              <span key="name">{cert.name}</span>
-            ),
-            <Muted key="issuer">{cert.issuer}</Muted>,
-          ])}
-        />
-      );
     case 'contact':
       return (
         <>
@@ -419,6 +437,7 @@ function AboutFile({
 
 export const grep: Command = {
   name: 'grep',
+  needsArgument: true,
   aliases: ['search', 'find'],
   usage: 'grep <text>',
   run(ctx, { args, rest }) {

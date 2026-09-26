@@ -1,5 +1,5 @@
 import type { Locale } from '@/i18n/config';
-import type { Dictionary } from '@/i18n/dictionaries';
+import type { ClientDictionary } from '@/i18n/dictionaries';
 import type { Theme, ThemePreference } from '@/lib/theme';
 import type { Completable } from '../engine/complete';
 import type { DirNode } from '../engine/fs';
@@ -7,7 +7,7 @@ import type { ParsedCommand } from '../engine/parse';
 import type { ConsoleIndex } from '../types';
 
 export interface CommandContext {
-  t: Dictionary;
+  t: ClientDictionary;
   locale: Locale;
   index: ConsoleIndex;
   root: DirNode;
@@ -32,9 +32,11 @@ export interface CommandContext {
 export type CommandResult = React.ReactNode | { error: React.ReactNode };
 
 export interface Command extends Completable {
-  /** Key into `t.console.commands` — commands without one are hidden. */
+  /** Also the key into `t.console.commands` for its one-line summary. */
   name: string;
   usage?: string;
+  /** Clicking it in `help` types it instead of running it. */
+  needsArgument?: boolean;
   run(
     ctx: CommandContext,
     input: ParsedCommand

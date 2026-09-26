@@ -3,22 +3,15 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CloseIcon } from '@/components/ui/icons';
-import { rememberLocale, useI18n } from '@/i18n/client';
-import {
-  localeMeta,
-  localizePath,
-  stripLocale,
-  type Locale,
-} from '@/i18n/config';
-import { format } from '@/i18n/format';
+import { rememberLocale, urlInLocale, useI18n } from '@/i18n/client';
+import { localeMeta, stripLocale, type Locale } from '@/i18n/config';
 import { useTheme } from '@/lib/theme';
-import { commands, findCommand } from './commands';
-import { isFailure, type CommandContext } from './commands/types';
+import { commands } from './commands';
+import { REOPEN_KEY } from './console-provider';
+import { runLine, type ShellHost } from './commands/run';
 import { complete, historyHint } from './engine/complete';
 import { buildFs, displayPath, nearestDir } from './engine/fs';
-import { parseCommand, splitChain } from './engine/parse';
-import { closest } from './engine/suggest';
-import { Cmd, ConsoleActionsContext, ErrorText, Line, Muted } from './output';
+import { ConsoleActionsContext, Muted } from './output';
 import type { ConsoleIndex } from './types';
 
 interface Entry {
@@ -40,6 +33,16 @@ function loadHistory(): string[] {
     return [];
   }
 }
+
+function saveHistory(history: string[]) {
+  try {
+    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch {
+    // Private mode: history lasts for this page view.
+  }
+}
+
+const isTouch = () => matchMedia('(pointer: coarse)').matches;
 
 function Prompt({ handle, cwd }: { handle: string; cwd: string }) {
   return (
@@ -70,8 +73,10 @@ export default function ConsolePanel({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const logRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
   const handledQueue = useRef(0);
+  const draft = useRef('');
 
   const root = useMemo(
     () =>
@@ -81,7 +86,6 @@ export default function ConsolePanel({
           experience: t.about.sections.experience,
           skills: t.about.sections.skills,
           education: t.about.sections.education,
-          certificates: t.about.sections.certifications,
           contact: t.about.sections.contact,
         },
         readme: t.home.runningHead,
@@ -94,14 +98,27 @@ export default function ConsolePanel({
     [index, t]
   );
 
-  // The working directory is the route. `cd` sets a pending value so chained
-  // commands and the prompt update before navigation finishes.
+  // The working directory is the route. A `cd` sets a pending value so the
+  // prompt moves at once; it only applies while the route is still where the
+  // `cd` started, so Back or a link click later can't resurrect it.
   const routeCwd = nearestDir(root, stripLocale(pathname)).path;
   const [pending, setPending] = useState<{ cwd: string; from: string } | null>(
     null
   );
+  const [seenRoute, setSeenRoute] = useState(routeCwd);
+  if (seenRoute !== routeCwd) {
+    setSeenRoute(routeCwd);
+    setPending(null);
+  }
   const cwd = pending && pending.from === routeCwd ? pending.cwd : routeCwd;
+
+  // OLDPWD follows the route too, however it changed (cd, a link, Back).
   const previousCwd = useRef<string | null>(null);
+  const lastRoute = useRef(routeCwd);
+  useEffect(() => {
+    if (lastRoute.current !== routeCwd) previousCwd.current = lastRoute.current;
+    lastRoute.current = routeCwd;
+  }, [routeCwd]);
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [value, setValue] = useState('');
@@ -110,48 +127,38 @@ export default function ConsolePanel({
   const [options, setOptions] = useState<string[]>([]);
   const hint = historyHint(value, history);
 
-  function focusInput() {
-    // On touch screens, don't summon the keyboard over the menu uninvited.
-    if (
-      matchMedia('(pointer: coarse)').matches &&
-      document.activeElement !== inputRef.current
-    )
+  function focusAfterCommand(source: Source) {
+    // On touch screens, don't summon the keyboard uninvited — but keep focus
+    // inside the dialog (the menu button that had it may be gone).
+    if (isTouch() && document.activeElement !== inputRef.current) {
+      if (source === 'menu') logRef.current?.focus({ preventScroll: true });
       return;
+    }
     inputRef.current?.focus({ preventScroll: true });
   }
 
   async function execute(line: string, source: Source) {
-    const trimmed = line.trim();
+    const input = line.trim();
     const id = nextId.current++;
-    let workingDir = cwd;
-    let navigated = false;
-    let cleared = false;
-    let closed = false;
-    const output: React.ReactNode[] = [];
+    const nextHistory = input
+      ? [...history.filter(entry => entry !== input), input].slice(
+          -HISTORY_LIMIT
+        )
+      : history;
 
-    const context: CommandContext = {
+    const host: ShellHost = {
       t,
       locale,
       index,
       root,
-      history,
-      commands,
       theme: { preference: theme.preference, resolved: theme.theme },
-      get cwd() {
-        return workingDir;
-      },
-      get previousCwd() {
-        return previousCwd.current;
-      },
-      cd(path, href) {
-        if (path !== workingDir) previousCwd.current = workingDir;
-        workingDir = path;
-        navigated = true;
-        setPending({ cwd: path, from: routeCwd });
+      history: nextHistory,
+      cwd,
+      previousCwd: previousCwd.current,
+      go(href) {
         router.push(`/${locale}${href === '/' ? '' : href}`);
       },
       navigate(href, target: Locale = locale) {
-        navigated = true;
         if (target !== locale) rememberLocale(target);
         router.push(`/${target}${href === '/' ? '' : href}`);
       },
@@ -165,7 +172,10 @@ export default function ConsolePanel({
       setTheme: theme.setPreference,
       switchLocale(target) {
         rememberLocale(target);
-        router.push(localizePath(pathname, target));
+        try {
+          sessionStorage.setItem(REOPEN_KEY, String(Date.now()));
+        } catch {}
+        router.push(urlInLocale(target));
       },
       async copy(text) {
         try {
@@ -175,98 +185,34 @@ export default function ConsolePanel({
           return false;
         }
       },
-      clear() {
-        cleared = true;
-      },
-      close() {
-        closed = true;
-      },
     };
 
     // Yield once, so no state is set synchronously inside effects that call us.
     await Promise.resolve();
+    const result = await runLine(input, host);
 
-    if (trimmed) {
-      setHistory(previous => {
-        const next = [
-          ...previous.filter(entry => entry !== trimmed),
-          trimmed,
-        ].slice(-HISTORY_LIMIT);
-        try {
-          sessionStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-        } catch {}
-        return next;
-      });
+    if (input) {
+      setHistory(nextHistory);
+      saveHistory(nextHistory);
     }
+    previousCwd.current = result.previousCwd;
+    if (result.moved) setPending({ cwd: result.cwd, from: routeCwd });
 
-    let ok = true;
-    for (const { command: segment, onlyIfOk } of splitChain(trimmed)) {
-      if (onlyIfOk && !ok) break;
-      const parsed = parseCommand(segment);
-      const command = findCommand(parsed.name);
-
-      if (!command) {
-        const suggestion = closest(
-          parsed.name,
-          commands.filter(c => !c.hidden).map(c => c.name)
-        );
-        ok = false;
-        output.push(
-          <div key={output.length}>
-            <Line>
-              <ErrorText>
-                {format(t.console.out.notFound, { command: parsed.name })}
-              </ErrorText>
-            </Line>
-            <Line className="text-muted">
-              {suggestion ? (
-                <>
-                  {t.console.out.didYouMean.split('{suggestion}')[0]}
-                  <Cmd run={segment.replace(parsed.name, suggestion)}>
-                    {suggestion}
-                  </Cmd>
-                  {t.console.out.didYouMean.split('{suggestion}')[1]}
-                </>
-              ) : (
-                t.console.out.helpHint
-              )}
-            </Line>
-          </div>
-        );
-        continue;
-      }
-
-      try {
-        const result = await command.run(context, parsed);
-        ok = !isFailure(result);
-        const node = isFailure(result) ? result.error : result;
-        if (node !== null && node !== undefined && node !== '') {
-          output.push(<div key={output.length}>{node}</div>);
-        }
-      } catch (error) {
-        ok = false;
-        output.push(
-          <ErrorText key={output.length}>
-            {parsed.name}:{' '}
-            {error instanceof Error ? error.message : String(error)}
-          </ErrorText>
-        );
-      }
+    const entry = { id, cwd, input, output: result.output };
+    if (result.clearedAt === null) {
+      setEntries(previous => [...previous, entry]);
+    } else {
+      // `clear && ls` clears, then shows what came after the clear.
+      const after = result.output.slice(result.clearedAt);
+      setEntries(after.length ? [{ ...entry, output: after }] : []);
     }
-
-    if (cleared) setEntries([]);
-    else
-      setEntries(previous => [
-        ...previous,
-        { id, cwd, input: trimmed, output },
-      ]);
     setValue('');
     setHistoryIndex(null);
     setOptions([]);
 
     // Picking a destination from the menu means "take me there".
-    if (closed || (navigated && source === 'menu')) onClose();
-    else focusInput();
+    if (result.close || (result.moved && source === 'menu')) onClose();
+    else focusAfterCommand(source);
   }
 
   // Open and close the native dialog from props.
@@ -275,7 +221,7 @@ export default function ConsolePanel({
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
-      if (!matchMedia('(pointer: coarse)').matches) inputRef.current?.focus();
+      if (!isTouch()) inputRef.current?.focus();
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -295,24 +241,34 @@ export default function ConsolePanel({
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
   }, [entries, options]);
 
+  function recall(index: number | null) {
+    setHistoryIndex(index);
+    setValue(index === null ? draft.current : history[index]);
+  }
+
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     const input = event.currentTarget;
+    const key = event.key.toLowerCase();
+
     if (event.key === 'ArrowUp' && history.length) {
       event.preventDefault();
-      const next =
+      if (historyIndex === null) draft.current = value; // keep what was being typed
+      recall(
         historyIndex === null
           ? history.length - 1
-          : Math.max(0, historyIndex - 1);
-      setHistoryIndex(next);
-      setValue(history[next]);
+          : Math.max(0, historyIndex - 1)
+      );
     } else if (event.key === 'ArrowDown' && historyIndex !== null) {
       event.preventDefault();
-      const next = historyIndex + 1;
-      setHistoryIndex(next >= history.length ? null : next);
-      setValue(next >= history.length ? '' : history[next]);
+      recall(historyIndex + 1 >= history.length ? null : historyIndex + 1);
     } else if (event.key === 'Tab' && value.trim()) {
       event.preventDefault();
-      const result = complete(value, { commands, root, cwd });
+      const result = complete(value, {
+        commands,
+        root,
+        cwd,
+        handle: index.profile.handle,
+      });
       setValue(result.value);
       setOptions(result.options.length > 1 ? result.options : []);
     } else if (
@@ -322,20 +278,23 @@ export default function ConsolePanel({
     ) {
       event.preventDefault();
       setValue(value + hint);
-    } else if (event.ctrlKey && event.key.toLowerCase() === 'l') {
+    } else if (event.ctrlKey && key === 'l') {
       event.preventDefault();
       setEntries([]);
     } else if (
       event.ctrlKey &&
-      event.key.toLowerCase() === 'c' &&
-      !input.selectionEnd
+      key === 'c' &&
+      input.selectionStart === input.selectionEnd
     ) {
+      // Only without a selection, so copying selected text still works.
       event.preventDefault();
       setEntries(previous => [
         ...previous,
         { id: nextId.current++, cwd, input: `${value}^C`, output: [] },
       ]);
       setValue('');
+      setHistoryIndex(null);
+      setOptions([]);
     }
   }
 
@@ -375,11 +334,14 @@ export default function ConsolePanel({
           {displayPath(cwd)}
         </h2>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:inline">{t.console.keys}</span>
+          <span id="console-keys" className="sr-only sm:not-sr-only">
+            {t.console.keys}
+          </span>
           <button
             type="button"
             onClick={onClose}
             aria-label={t.console.close}
+            data-testid="console-close"
             className="inline-flex size-9 items-center justify-center rounded-md transition-colors duration-(--dur-fast) hover:bg-bg hover:text-fg"
           >
             <CloseIcon />
@@ -436,7 +398,14 @@ export default function ConsolePanel({
             </div>
           )}
 
-          <div role="log" aria-live="polite" aria-relevant="additions">
+          <div
+            ref={logRef}
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            tabIndex={-1}
+            className="outline-none"
+          >
             {entries.map(entry => (
               <div key={entry.id} className="mb-4">
                 <div className="flex gap-2">
@@ -463,6 +432,7 @@ export default function ConsolePanel({
           </label>
           <Prompt handle={index.profile.handle} cwd={cwd} />
           <div className="relative min-w-0 flex-1">
+            {/* Ghost text: the rest of a matching history entry (→ accepts). */}
             <span
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre text-faint"
@@ -480,28 +450,33 @@ export default function ConsolePanel({
                 setHistoryIndex(null);
               }}
               onKeyDown={onKeyDown}
+              aria-describedby="console-keys"
               placeholder={entries.length ? '' : t.console.placeholder}
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="none"
               spellCheck={false}
               enterKeyHint="go"
-              className="relative w-full bg-transparent caret-accent outline-none [caret-shape:block] placeholder:text-faint"
+              className="relative w-full bg-transparent caret-accent outline-none [caret-shape:block] placeholder:text-muted"
             />
           </div>
         </form>
 
-        {options.length > 0 && (
-          <div
-            aria-live="polite"
-            className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-muted"
-          >
-            <span className="sr-only">{t.console.suggestions}:</span>
-            {options.map(option => (
-              <Muted key={option}>{option}</Muted>
-            ))}
-          </div>
-        )}
+        {/* Always mounted: a live region created together with its content
+            usually isn't announced. */}
+        <div
+          aria-live="polite"
+          className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-muted empty:hidden"
+        >
+          {options.length > 0 && (
+            <>
+              <span className="sr-only">{t.console.suggestions}:</span>
+              {options.map(option => (
+                <Muted key={option}>{option}</Muted>
+              ))}
+            </>
+          )}
+        </div>
       </div>
     </dialog>
   );

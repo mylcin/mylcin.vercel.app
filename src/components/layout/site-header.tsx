@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ConsoleTrigger } from '@/features/console/console-trigger';
+import { format } from '@/i18n/format';
 import { getT } from '@/i18n/server';
+import { getProfile } from '@/lib/content/site';
 import { Breadcrumbs } from './breadcrumbs';
 import { LanguageSwitch } from './language-switch';
 import { NavLinks } from './nav-links';
@@ -8,6 +10,7 @@ import { ThemeToggle } from './theme-toggle';
 
 export async function SiteHeader() {
   const { locale, t } = await getT();
+  const { name } = getProfile(locale);
   const nav = [
     { href: `/${locale}/work`, label: t.nav.work, section: '/work' },
     { href: `/${locale}/blog`, label: t.nav.blog, section: '/blog' },
@@ -22,18 +25,18 @@ export async function SiteHeader() {
       <div className="flex min-w-0 items-baseline gap-4">
         <Link
           href={`/${locale}`}
-          aria-label={t.nav.homeLink}
+          aria-label={format(t.nav.homeLink, { name })}
           className="shrink-0 text-base font-medium tracking-tight whitespace-nowrap transition-colors duration-(--dur-fast) hover:text-accent-ink"
         >
-          Mustafa Yalçın
+          {name}
         </Link>
         <Breadcrumbs className="hidden md:block" />
       </div>
 
       <div className="ml-auto flex items-center gap-2 md:order-last md:ml-0">
-        {/* Language and theme live in the footer on small screens. */}
-        <div className="hidden items-center gap-2 md:flex">
-          <LanguageSwitch />
+        <LanguageSwitch />
+        {/* On small screens the theme toggle lives in the footer. */}
+        <div className="hidden md:block">
           <ThemeToggle />
         </div>
         <ConsoleTrigger />

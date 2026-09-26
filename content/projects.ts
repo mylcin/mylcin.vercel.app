@@ -11,7 +11,7 @@ export const projects: Project[] = [
     title: { en: 'Terminal Portfolio' },
     tagline: {
       en: 'This site: a personal website with a shell built in.',
-      tr: 'Bu site: içine bir kabuk yerleştirilmiş kişisel web sitesi.',
+      tr: 'Bu site: içinde bir komut satırı olan kişisel web sitesi.',
     },
     category: 'web',
     status: 'live',

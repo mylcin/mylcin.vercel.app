@@ -4,8 +4,8 @@ import { PageTransition } from '@/components/ui/page-transition';
 import { ProjectIndex } from '@/features/work/project-index';
 import { isLocale, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
-import { plural } from '@/i18n/format';
-import { getProjects } from '@/lib/content/site';
+import { format, plural } from '@/i18n/format';
+import { getProfile, getProjects } from '@/lib/content/site';
 import { pageMetadata } from '@/lib/seo';
 
 export async function generateMetadata({
@@ -18,7 +18,9 @@ export async function generateMetadata({
     locale,
     path: '/work',
     title: t.work.title,
-    description: t.meta.workDescription,
+    description: format(t.meta.workDescription, {
+      name: getProfile(locale).name,
+    }),
   });
 }
 
@@ -36,7 +38,11 @@ export default async function WorkPage({
         title={t.work.title}
         intro={t.work.intro}
       />
-      <ProjectIndex projects={projects} />
+      {/* Same grid as the header above: the list starts in the content column. */}
+      <div className="section">
+        <div aria-hidden="true" className="hidden md:block" />
+        <ProjectIndex projects={projects} />
+      </div>
     </PageTransition>
   );
 }

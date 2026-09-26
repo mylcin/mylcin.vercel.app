@@ -37,20 +37,22 @@ export const ascii: Command = {
       );
     }
     const { default: art } = await import('../ascii-art');
-    if (!art[name]) {
+    // Own keys only: `ascii __proto__` must not reach Object.prototype.
+    if (!Object.hasOwn(art, name)) {
       return fail(
         <ErrorText>
           {format(ctx.t.console.out.invalidValue, {
             command: 'ascii',
             value: name,
-            expected: 'ascii',
+            expected: ASCII_NAMES.join(', '),
           })}
         </ErrorText>
       );
     }
     return (
       <pre
-        aria-label={name}
+        role="img"
+        aria-label={`ASCII art: ${name}`}
         className="overflow-x-auto text-[0.5rem] leading-[1.15] sm:text-xs sm:leading-tight"
       >
         {art[name]}

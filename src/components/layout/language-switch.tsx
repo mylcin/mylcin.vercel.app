@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { localeMeta, locales, localizePath } from '@/i18n/config';
-import { rememberLocale, useI18n } from '@/i18n/client';
+import { rememberLocale, urlInLocale, useI18n } from '@/i18n/client';
 import { format } from '@/i18n/format';
 import { cx } from '@/lib/cx';
 
 export function LanguageSwitch({ className }: { className?: string }) {
   const { locale, t } = useI18n();
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <ul
@@ -24,25 +25,40 @@ export function LanguageSwitch({ className }: { className?: string }) {
             </span>
           )}
           {l === locale ? (
-            <span
-              aria-current="true"
-              className="px-1 py-2 text-fg"
-              title={localeMeta[l].label}
-            >
+            <span aria-current="true" className="px-1 py-2 text-fg">
               {localeMeta[l].short}
             </span>
           ) : (
             <Link
               href={localizePath(pathname, l)}
               hrefLang={l}
-              lang={l}
-              onClick={() => rememberLocale(l)}
-              aria-label={format(t.controls.switchLanguage, {
-                language: localeMeta[l].label,
-              })}
+              onClick={event => {
+                rememberLocale(l);
+                // The href can't know the query or hash without making every
+                // page dynamic; add them on the way out.
+                const plainClick =
+                  event.button === 0 &&
+                  !event.metaKey &&
+                  !event.ctrlKey &&
+                  !event.shiftKey &&
+                  !event.altKey;
+                if (
+                  plainClick &&
+                  (window.location.search || window.location.hash)
+                ) {
+                  event.preventDefault();
+                  router.push(urlInLocale(l));
+                }
+              }}
               className="px-1 py-2 text-muted transition-colors duration-(--dur-fast) hover:text-fg"
             >
               {localeMeta[l].short}
+              <span className="sr-only">
+                ,{' '}
+                {format(t.controls.switchLanguage, {
+                  language: t.languageNames[l],
+                })}
+              </span>
             </Link>
           )}
         </li>

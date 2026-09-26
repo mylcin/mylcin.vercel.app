@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { defaultLocale, localeMeta, locales, type Locale } from '@/i18n/config';
-import { SITE_URL } from './site';
+import { getProfile } from './content/site';
+import { absoluteUrl, SITE_URL } from './site';
+
+/** One identity for the author across every page's structured data. */
+export const PERSON_ID = absoluteUrl('/#person');
 
 interface PageMetaInput {
   locale: Locale;
@@ -16,7 +20,7 @@ interface PageMetaInput {
   publishedTime?: string;
   modifiedTime?: string;
   tags?: string[];
-  /** Use the title as-is instead of the "%s — Mustafa Yalçın" template. */
+  /** Use the title as-is instead of the layout's "%s — <name>" template. */
   absoluteTitle?: boolean;
 }
 
@@ -56,20 +60,21 @@ export function pageMetadata(input: PageMetaInput): Metadata {
         'application/rss+xml': `/${locale}/blog/feed.xml`,
       },
     },
+    // Describes the canonical page: an untranslated fallback shares as the original.
     openGraph: {
       type,
       title,
       description,
-      url: localeHref(locale, path),
-      siteName: 'Mustafa Yalçın',
-      locale: localeMeta[locale].ogLocale,
+      url: localeHref(canonicalLocale, path),
+      siteName: getProfile(canonicalLocale).name,
+      locale: localeMeta[canonicalLocale].ogLocale,
       alternateLocale: availableIn
-        .filter(l => l !== locale)
+        .filter(l => l !== canonicalLocale)
         .map(l => localeMeta[l].ogLocale),
       ...(type === 'article' && {
         publishedTime: input.publishedTime,
         modifiedTime: input.modifiedTime,
-        authors: [`${SITE_URL}/${locale}/about`],
+        authors: [`${SITE_URL}/${canonicalLocale}/about`],
         tags: input.tags,
       }),
     },

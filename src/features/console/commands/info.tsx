@@ -1,5 +1,10 @@
 import { localeMeta } from '@/i18n/config';
-import { format, formatDate, monthsBetween, plural } from '@/i18n/format';
+import {
+  format,
+  formatDate,
+  formatDuration,
+  monthsBetween,
+} from '@/i18n/format';
 import { searchable } from '../engine/suggest';
 import {
   Block,
@@ -62,17 +67,26 @@ export const help: Command = {
         <Line className="text-muted">{ctx.t.console.out.helpTitle}</Line>
         <Rows
           className="mt-1"
-          rows={visible.map(command => [
-            // Commands that need an argument are typed in, not run.
-            command.usage?.includes('<') ? (
-              <Cmd key="name" fill={`${command.name} `}>
-                {command.name}
-              </Cmd>
-            ) : (
-              <Cmd key="name" run={command.name} />
-            ),
-            <span key="summary">{summaryOf(ctx, command.name)}</span>,
-          ])}
+          rows={visible.map(command => {
+            // `mustafa` runs under the author's handle, whatever it is.
+            const name =
+              command.name === mustafa.name
+                ? ctx.index.profile.handle
+                : command.name;
+            return [
+              // Commands that need an argument are typed in, not run.
+              command.needsArgument ? (
+                <Cmd key="name" fill={`${name} `}>
+                  {name}
+                </Cmd>
+              ) : (
+                <Cmd key="name" run={name}>
+                  {name}
+                </Cmd>
+              ),
+              <span key="summary">{summaryOf(ctx, command.name)}</span>,
+            ];
+          })}
         />
         <Line className="mt-[1lh] text-muted">
           {ctx.t.console.out.helpFooter}
@@ -84,17 +98,14 @@ export const help: Command = {
 
 function careerDuration(ctx: CommandContext) {
   const months = monthsBetween(ctx.index.profile.careerStart, new Date());
-  const years = Math.floor(months / 12);
-  const rest = months % 12;
   return {
-    version: `${years}.${rest}`,
-    text: [
-      years ? plural(ctx.locale, years, ctx.t.about.years) : '',
-      rest ? plural(ctx.locale, rest, ctx.t.about.months) : '',
-    ]
-      .filter(Boolean)
-      .join(' '),
-    since: formatDate(ctx.index.profile.careerStart, ctx.locale, 'monthYear'),
+    version: `${Math.floor(months / 12)}.${months % 12}`,
+    text: formatDuration(months, ctx.locale, ctx.t.about),
+    since: formatDate(
+      ctx.index.profile.careerStart,
+      ctx.locale,
+      'monthYearLong'
+    ),
   };
 }
 
@@ -123,16 +134,14 @@ function Options({ ctx }: { ctx: CommandContext }) {
 export const mustafa: Command = {
   name: 'mustafa',
   usage: 'mustafa [--help] [--version] <idea>',
-  run(ctx, { args, flags, rest }) {
+  run(ctx, { args, flags }) {
     const { t, index } = ctx;
     if (flags.has('version') || flags.has('v')) {
       const { version, since } = careerDuration(ctx);
       return format(t.console.out.mustafaVersion, { version, since });
     }
     if (args.length) {
-      const idea = rest
-        .replace(/^(--?\S+\s+)*/, '')
-        .replace(/^["']|["']$/g, '');
+      const idea = args.join(' ');
       const [before, after] = t.console.out.mustafaIdea
         .replace('{idea}', idea)
         .split('{email}');
@@ -155,8 +164,10 @@ export const mustafa: Command = {
         <Gap />
         <Line className="text-muted">
           {t.console.out.mustafaSeeAlso}:{' '}
-          <Cmd run="man mustafa">man mustafa</Cmd>,{' '}
-          <Cmd run="cd ~/work">cd work</Cmd>
+          <Cmd run={`man ${index.profile.handle}`}>
+            man {index.profile.handle}
+          </Cmd>
+          , <Cmd run="cd ~/work">cd work</Cmd>
         </Line>
       </>
     );
@@ -165,6 +176,7 @@ export const mustafa: Command = {
 
 export const man: Command = {
   name: 'man',
+  needsArgument: true,
   usage: 'man <page>',
   completer: { kind: 'values', values: [] }, // filled in by the registry
   run(ctx, { args }) {
@@ -229,11 +241,15 @@ export const man: Command = {
 export const whoami: Command = {
   name: 'whoami',
   run(ctx) {
-    const [before, after] = ctx.t.console.out.whoami.split('man mustafa');
+    const { name, handle } = ctx.index.profile;
+    const command = `man ${handle}`;
+    const [before, after] = format(ctx.t.console.out.whoami, {
+      name: name.split(' ')[0],
+    }).split('{command}');
     return (
       <Line>
         {before}
-        <Cmd run="man mustafa">man {ctx.index.profile.handle}</Cmd>
+        <Cmd run={command}>{command}</Cmd>
         {after}
       </Line>
     );
@@ -264,8 +280,8 @@ export const neofetch: Command = {
       [labels.location, `${index.profile.city}, ${index.profile.country}`],
       [labels.role, index.profile.role],
       [labels.stack, index.profile.stack.join(', ')],
-      [labels.languages, labels.languagesValue],
-      [labels.hobbies, labels.hobbiesValue],
+      [labels.languages, index.profile.languages],
+      [labels.hobbies, index.profile.hobbies],
       [labels.theme, `${theme} · ${localeMeta[locale].label}`],
     ];
     const swatches = [
@@ -338,5 +354,6 @@ export const date: Command = {
 export const echo: Command = {
   name: 'echo',
   usage: 'echo <text>',
-  run: (_ctx, { rest }) => rest.replace(/^(["'])(.*)\1$/, '$2'),
+  needsArgument: true,
+  run: (_ctx, { args }) => args.join(' '),
 };

@@ -3,25 +3,24 @@
 import { buttonClass } from '@/components/ui/button';
 import { useI18n } from '@/i18n/client';
 
-export default function Error({
-  reset,
+export default function ErrorPage({
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   const { t } = useI18n();
   return (
-    <div role="alert" className="section py-10 md:py-20">
+    <div role="alert" className="section pb-10 md:pb-20">
       <p className="label">500</p>
       <div className="min-w-0">
-        <h1 className="text-2xl font-normal tracking-[-0.015em]">
-          {t.error.title}
-        </h1>
-        <pre className="mt-6 font-mono text-sm text-err">{t.error.command}</pre>
-        <p className="mt-6 max-w-prose text-muted">{t.error.body}</p>
+        <h1 className="text-2xl font-normal">{t.error.title}</h1>
+        <p className="mt-6 font-mono text-sm text-err">{t.error.command}</p>
+        <p className="mt-6 max-w-measure text-muted">{t.error.body}</p>
+        {/* retry() re-fetches as well as re-rendering; reset() would only re-render. */}
         <button
           type="button"
-          onClick={reset}
+          onClick={() => retry()}
           className={buttonClass({ variant: 'solid', className: 'mt-8' })}
         >
           {t.error.retry}

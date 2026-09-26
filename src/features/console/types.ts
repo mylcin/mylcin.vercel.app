@@ -11,7 +11,6 @@ import type {
  * (see engine/fs.ts) is built from this.
  */
 export interface ConsoleIndex {
-  locale: Locale;
   profile: {
     name: string;
     handle: string;
@@ -33,6 +32,8 @@ export interface ConsoleIndex {
     employer?: string;
     careerStart: string;
     stack: string[];
+    languages: string;
+    hobbies: string;
   };
   projects: {
     slug: string;
@@ -55,8 +56,18 @@ export interface ConsoleIndex {
     lang: Locale;
     translations: Locale[];
     excerpt: string;
-    /** Per-language titles, so `ls blog/<slug>` can show each file. */
-    titles: Partial<Record<Locale, string>>;
+    /** Each translation's own text, so `cat <slug>/<lang>.md` shows that file. */
+    variants: Partial<
+      Record<
+        Locale,
+        {
+          title: string;
+          description: string;
+          excerpt: string;
+          readingMinutes: number;
+        }
+      >
+    >;
   }[];
   about: {
     experience: {
@@ -74,12 +85,6 @@ export interface ConsoleIndex {
       start: string;
       end: string;
       gpa?: string;
-    }[];
-    certificates: {
-      name: string;
-      issuer: string;
-      date: string;
-      url?: string;
     }[];
   };
 }

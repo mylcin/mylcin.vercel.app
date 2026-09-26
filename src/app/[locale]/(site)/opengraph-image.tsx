@@ -1,15 +1,21 @@
-import { defaultLocale, isLocale, locales } from '@/i18n/config';
+import { defaultLocale, isLocale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { getProfile } from '@/lib/content/site';
-import { ogContentType, ogHost, ogImage, ogSize } from '@/lib/og';
+import {
+  localeParams,
+  ogAlt,
+  ogContentType,
+  ogHost,
+  ogImage,
+  ogSize,
+} from '@/lib/og';
 
-export const alt = 'Mustafa Yalçın';
+export const alt = ogAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
 
-export function generateStaticParams() {
-  return locales.map(locale => ({ locale }));
-}
+export const dynamicParams = false;
+export const generateStaticParams = localeParams;
 
 export default async function Image({
   params,

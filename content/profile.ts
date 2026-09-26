@@ -2,8 +2,15 @@ import type { Profile } from '@/lib/content/types';
 
 export const profile: Profile = {
   name: 'Mustafa Yalçın',
+  /**
+   * Shown in running heads (MUSTAFA(1)) and the console prompt, and used as
+   * the console command that prints the synopsis (`mustafa --help`).
+   */
   handle: 'mustafa',
-  role: { en: 'Front-end developer', tr: 'Front-end geliştirici' },
+  role: {
+    en: 'Front-end software developer',
+    tr: 'Front-end yazılım geliştirici',
+  },
   email: 'mustafa00yalcin@gmail.com',
   location: {
     city: 'Eskişehir',
@@ -11,34 +18,39 @@ export const profile: Profile = {
     timeZone: 'Europe/Istanbul',
   },
 
+  description: {
+    en: 'Front-end software developer in Eskişehir. Interfaces where simplicity and usability come first — plus notes on the web platform.',
+    tr: 'Eskişehir’de front-end yazılım geliştirici. Sadeliği ve kullanılabilirliği ön planda tutan arayüzler — bir de web platformu üzerine notlar.',
+  },
+
   headline: {
     en: 'builds interfaces where simplicity and usability come first.',
-    tr: 'sadeliğin ve kullanılabilirliğin önce geldiği arayüzler geliştirir.',
+    tr: 'sadeliği ve kullanılabilirliği ön planda tutan arayüzler geliştirir.',
   },
 
   intro: {
     en: [
-      'Front-end developer at PITON Technology in Eskişehir. Most days that means real-time dashboards and map-heavy (GIS) interfaces, built with React, Next.js and TypeScript — with the occasional detour into Node.js.',
-      'Before that: freelance work, a Computer Engineering degree, and a good number of workshops with the Google Developer Student Club.',
+      'Front-end developer at PITON Technology in Eskişehir, where I lead front-end refactoring work on two production platforms, ITS and GIS. Most of it is React and Next.js, with performance and maintainable architecture as the recurring themes.',
+      'I also mentor junior developers through code review and work closely with product and design. Before PITON: about a year of freelance work, and a Computer Engineering degree from Süleyman Demirel University.',
     ],
     tr: [
-      'Eskişehir’de, PITON Technology’de front-end geliştiriciyim. Çoğu gün bu; React, Next.js ve TypeScript ile gerçek zamanlı paneller ve harita ağırlıklı (GIS) arayüzler demek — arada bir de Node.js’e uğramak.',
-      'Öncesinde: serbest çalışma, bir Bilgisayar Mühendisliği diploması ve Google Developer Student Club ile epeyce atölye.',
+      'Eskişehir’deki PITON Technology’de front-end geliştiriciyim; iki canlı platformda (ITS ve GIS) front-end’i yeniden yapılandırma çalışmalarını yürütüyorum. İşimin çoğu React ve Next.js; performans ve sürdürülebilir mimari hep gündemde.',
+      'Junior geliştiricilere kod incelemeleriyle mentorluk yapıyor, ürün ve tasarım ekipleriyle yakın çalışıyorum. PITON’dan önce yaklaşık bir yıl serbest çalıştım; Süleyman Demirel Üniversitesi’nde Bilgisayar Mühendisliği okudum.',
     ],
   },
 
   about: {
     en: [
-      'I’m Mustafa, a front-end developer based in Eskişehir, Türkiye. I work at PITON Technology, where I build real-time dashboards and GIS-based location tracking interfaces.',
-      'I studied Computer Engineering at Süleyman Demirel University and was on the core team of the Google Developer Student Club there. I freelanced for about a year before joining PITON in 2023.',
-      'I build interfaces where simplicity and usability come first. Most of my work revolves around React, Next.js and TypeScript, with Node.js when a project needs a backend.',
-      'I balance screen time with… well, different screen time: books and video games.',
+      'I’m Mustafa, a front-end developer based in Eskişehir, Türkiye, with five years of building React and Next.js applications.',
+      'At PITON Technology I lead front-end refactoring work. On two production platforms, ITS and GIS, that meant new rendering patterns and a shared component library, with measurable gains in load times, bug rates and release stability.',
+      'I studied Computer Engineering at Süleyman Demirel University, where I was on the core team of the Google Developer Student Club and led technical workshops. I freelanced for about a year before joining PITON in 2023.',
+      'I build interfaces where simplicity and usability come first. I balance screen time with… well, different screen time: books and video games.',
     ],
     tr: [
-      'Ben Mustafa; Eskişehir’de yaşayan bir front-end geliştiriciyim. PITON Technology’de gerçek zamanlı paneller ve GIS tabanlı konum takip arayüzleri geliştiriyorum.',
-      'Süleyman Demirel Üniversitesi’nde Bilgisayar Mühendisliği okudum ve oradaki Google Developer Student Club’ın çekirdek ekibindeydim. 2023’te PITON’a katılmadan önce yaklaşık bir yıl serbest çalıştım.',
-      'Sadeliğin ve kullanılabilirliğin önce geldiği arayüzler geliştiriyorum. İşlerimin çoğu React, Next.js ve TypeScript etrafında dönüyor; bir projenin backend’e ihtiyacı olduğunda da Node.js devreye giriyor.',
-      'Ekran süremi… başka bir ekran süresiyle dengeliyorum: kitaplar ve video oyunları.',
+      'Ben Mustafa; Eskişehir’de yaşayan, beş yıldır React ve Next.js ile uygulama geliştiren bir front-end geliştiriciyim.',
+      'PITON Technology’de front-end’i yeniden yapılandırma çalışmalarını yürütüyorum. İki canlı platformda (ITS ve GIS) bu; yeni render desenleri ve ortak bir bileşen kütüphanesi demekti. Sonuçlar da yükleme sürelerine, hata oranlarına ve sürüm kararlılığına ölçülebilir biçimde yansıdı.',
+      'Süleyman Demirel Üniversitesi’nde Bilgisayar Mühendisliği okudum; orada Google Developer Student Clubs çekirdek ekibindeydim ve teknik atölyeler yürüttüm. 2023’te PITON’a katılmadan önce yaklaşık bir yıl serbest çalıştım.',
+      'Sadeliği ve kullanılabilirliği ön planda tutan arayüzler geliştiriyorum. Ekran süremi… başka bir ekran süresiyle dengeliyorum: kitaplar ve video oyunları.',
     ],
   },
 
@@ -73,7 +85,7 @@ export const profile: Profile = {
     argument: { en: 'idea', tr: 'fikir' },
     summary: {
       en: 'Turns an idea into an interface where simplicity and usability come first.',
-      tr: 'Bir fikri, sadeliğin ve kullanılabilirliğin önce geldiği bir arayüze dönüştürür.',
+      tr: 'Bir fikri, sadeliği ve kullanılabilirliği ön planda tutan bir arayüze dönüştürür.',
     },
   },
 
@@ -87,6 +99,12 @@ export const profile: Profile = {
       'Ekran süresini başka bir ekran süresiyle dengeler: kitaplar ve video oyunları.',
     ],
   },
+
+  languages: {
+    en: 'Turkish (native), English, German',
+    tr: 'Türkçe (ana dil), İngilizce, Almanca',
+  },
+  hobbies: { en: 'books, video games', tr: 'kitaplar, video oyunları' },
 
   socials: [
     {

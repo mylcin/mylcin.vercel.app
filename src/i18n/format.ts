@@ -31,6 +31,7 @@ const dateStyles = {
   short: { day: 'numeric', month: 'short', year: 'numeric' },
   dayMonth: { day: 'numeric', month: 'short' },
   monthYear: { month: 'short', year: 'numeric' },
+  monthYearLong: { month: 'long', year: 'numeric' },
   year: { year: 'numeric' },
 } satisfies Record<string, Intl.DateTimeFormatOptions>;
 
@@ -60,17 +61,6 @@ export function isoDate(value: string | Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function formatList(
-  items: string[],
-  locale: Locale,
-  type: Intl.ListFormatType = 'conjunction'
-): string {
-  return new Intl.ListFormat(localeMeta[locale].intl, {
-    style: 'long',
-    type,
-  }).format(items);
-}
-
 /** Whole months between two `YYYY-MM` dates, inclusive of the start month. */
 export function monthsBetween(start: string, end: string | Date): number {
   const from = parseDate(start);
@@ -80,4 +70,20 @@ export function monthsBetween(start: string, end: string | Date): number {
     (to.getUTCMonth() - from.getUTCMonth()) +
     1
   );
+}
+
+/** "4 yrs 10 mos" / "4 yıl 10 ay". Zero parts are left out. */
+export function formatDuration(
+  months: number,
+  locale: Locale,
+  forms: { years: Plural; months: Plural }
+): string {
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  return [
+    years ? plural(locale, years, forms.years) : '',
+    rest ? plural(locale, rest, forms.months) : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 }

@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { mdxComponents } from '@/components/mdx/mdx-components';
 import { MoreLink } from '@/components/ui/more-link';
+import { Pager } from '@/components/ui/pager';
 import { PageTransition, SharedTitle } from '@/components/ui/page-transition';
 import { TableOfContents } from '@/features/blog/table-of-contents';
-import { isLocale, localeMeta, locales, type Locale } from '@/i18n/config';
+import { isLocale, locales, type Locale } from '@/i18n/config';
 import { getDictionary } from '@/i18n/dictionaries';
 import { format, formatDate, isoDate, plural } from '@/i18n/format';
 import {
@@ -15,7 +16,7 @@ import {
   relatedPosts,
 } from '@/lib/content/blog';
 import { getProfile } from '@/lib/content/site';
-import { JsonLd, pageMetadata } from '@/lib/seo';
+import { JsonLd, pageMetadata, PERSON_ID } from '@/lib/seo';
 import { absoluteUrl } from '@/lib/site';
 
 export const dynamicParams = false;
@@ -50,8 +51,8 @@ export async function generateMetadata({
 export default async function PostPage({
   params,
 }: PageProps<'/[locale]/blog/[slug]'>) {
-  const { slug } = await params;
-  const locale = (await params).locale as Locale;
+  const { slug, locale: raw } = await params;
+  const locale = raw as Locale;
   const t = getDictionary(locale);
   const post = await getPost(slug, locale);
   if (!post) notFound();
@@ -66,7 +67,12 @@ export default async function PostPage({
   );
   const { Content, toc } = post;
   const isFallback = post.lang !== locale;
-  const otherLanguages = post.translations.filter(l => l !== locale);
+  // On a fallback page the text already is the other language; don't offer it again.
+  const otherLanguages = isFallback
+    ? []
+    : post.translations.filter(l => l !== locale);
+  const langOf = (p: { lang: Locale }) =>
+    p.lang !== locale ? p.lang : undefined;
   const replyHref = `mailto:${profile.email}?subject=${encodeURIComponent(
     format(t.blog.replySubject, { title: post.title })
   )}`;
@@ -85,11 +91,7 @@ export default async function PostPage({
           keywords: post.tags.join(', '),
           url: absoluteUrl(`/${post.lang}/blog/${slug}`),
           mainEntityOfPage: absoluteUrl(`/${post.lang}/blog/${slug}`),
-          author: {
-            '@type': 'Person',
-            name: profile.name,
-            url: absoluteUrl(`/${locale}/about`),
-          },
+          author: { '@id': PERSON_ID },
         }}
       />
 
@@ -113,12 +115,15 @@ export default async function PostPage({
             <SharedTitle name={`post-${post.slug}`}>
               <h1
                 lang={post.lang}
-                className="max-w-[24ch] text-2xl font-normal tracking-[-0.015em]"
+                className="max-w-[24ch] text-2xl font-normal"
               >
                 {post.title}
               </h1>
             </SharedTitle>
-            <p lang={post.lang} className="mt-5 max-w-prose text-xl text-muted">
+            <p
+              lang={post.lang}
+              className="mt-5 max-w-measure text-xl text-muted"
+            >
               {post.description}
             </p>
 
@@ -147,12 +152,9 @@ export default async function PostPage({
                   key={l}
                   href={`/${l}/blog/${slug}`}
                   hrefLang={l}
-                  lang={l}
                   className="link"
                 >
-                  {format(t.blog.availableIn, {
-                    language: localeMeta[l].label,
-                  })}
+                  {format(t.blog.availableIn, { language: t.languageNames[l] })}
                 </Link>
               ))}
             </div>
@@ -160,7 +162,7 @@ export default async function PostPage({
             {isFallback && (
               <p
                 role="note"
-                className="mt-8 max-w-prose border-l-2 border-accent pl-4 font-mono text-xs leading-relaxed text-muted"
+                className="mt-8 max-w-measure border-l-2 border-accent pl-4 font-mono text-xs leading-relaxed text-muted"
               >
                 {format(t.blog.fallbackNotice, {
                   current: t.languageNames[locale],
@@ -172,20 +174,23 @@ export default async function PostPage({
         </header>
 
         <div className="section">
-          <div className="hidden xl:block">
+          {/* Always a grid cell at md+, so the body stays in the content
+              column; the outline itself only fits from xl. */}
+          <div className="hidden md:block">
             {toc.length >= 3 && (
-              <TableOfContents items={toc} label={t.blog.toc} />
+              <div className="hidden xl:block">
+                <TableOfContents items={toc} label={t.blog.toc} />
+              </div>
             )}
           </div>
-          <div lang={post.lang} className="prose max-w-prose min-w-0">
+          <div lang={post.lang} className="prose max-w-measure min-w-0">
             <Content components={mdxComponents(locale)} />
           </div>
         </div>
       </article>
 
       <footer className="section mt-20">
-        <span />
-        <div className="max-w-prose border-t border-line pt-8">
+        <div className="max-w-measure border-t border-line pt-8 md:col-start-2">
           <p className="text-muted">
             {format(t.blog.writtenBy, { name: profile.name })} ·{' '}
             <a href={replyHref} className="link text-fg">
@@ -199,7 +204,11 @@ export default async function PostPage({
               <ul className="space-y-2">
                 {related.map(p => (
                   <li key={p.slug}>
-                    <Link href={`/${locale}/blog/${p.slug}`} className="link">
+                    <Link
+                      href={`/${locale}/blog/${p.slug}`}
+                      lang={langOf(p)}
+                      className="link"
+                    >
                       {p.title}
                     </Link>
                   </li>
@@ -208,38 +217,27 @@ export default async function PostPage({
             </div>
           )}
 
-          {(newer || older) && (
-            <nav
-              aria-label={t.blog.allPosts}
-              className="mt-10 grid gap-6 sm:grid-cols-2"
-            >
-              {newer ? (
-                <Link href={`/${locale}/blog/${newer.slug}`} className="group">
-                  <span className="block font-mono text-xs text-muted">
-                    ← {t.blog.newer}
-                  </span>
-                  <span className="mt-1 block transition-colors duration-(--dur-fast) group-hover:text-accent-ink">
-                    {newer.title}
-                  </span>
-                </Link>
-              ) : (
-                <span />
-              )}
-              {older && (
-                <Link
-                  href={`/${locale}/blog/${older.slug}`}
-                  className="group sm:text-right"
-                >
-                  <span className="block font-mono text-xs text-muted">
-                    {t.blog.older} →
-                  </span>
-                  <span className="mt-1 block transition-colors duration-(--dur-fast) group-hover:text-accent-ink">
-                    {older.title}
-                  </span>
-                </Link>
-              )}
-            </nav>
-          )}
+          <div className="mt-10">
+            <Pager
+              label={t.blog.pager}
+              previous={
+                newer && {
+                  href: `/${locale}/blog/${newer.slug}`,
+                  label: t.blog.newer,
+                  title: newer.title,
+                  lang: langOf(newer),
+                }
+              }
+              next={
+                older && {
+                  href: `/${locale}/blog/${older.slug}`,
+                  label: t.blog.older,
+                  title: older.title,
+                  lang: langOf(older),
+                }
+              }
+            />
+          </div>
         </div>
       </footer>
     </PageTransition>

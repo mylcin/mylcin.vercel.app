@@ -1,17 +1,18 @@
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
-import { SiteFooter } from '@/components/layout/site-footer';
-import { SiteHeader } from '@/components/layout/site-header';
+import { InlineScript } from '@/components/layout/inline-script';
 import { ConsoleProvider } from '@/features/console/console-provider';
 import { buildConsoleIndex } from '@/features/console/build-index';
 import { I18nProvider } from '@/i18n/client';
 import { isLocale, locales } from '@/i18n/config';
-import { getDictionary } from '@/i18n/dictionaries';
+import { clientMessages, getDictionary } from '@/i18n/dictionaries';
+import { getProfile } from '@/lib/content/site';
 import { fontVariables } from '@/lib/fonts';
 import { SITE_URL } from '@/lib/site';
 import { themeScript } from '@/lib/theme-script';
 import '../globals.css';
 
+// Only real locales: anything else is unmatched and gets global-not-found.
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -23,14 +24,14 @@ export async function generateMetadata({
 }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const t = getDictionary(locale);
+  const { name, role, description } = getProfile(locale);
   return {
     metadataBase: new URL(SITE_URL),
-    title: { default: t.home.title, template: '%s — Mustafa Yalçın' },
-    description: t.meta.description,
-    applicationName: 'Mustafa Yalçın',
-    authors: [{ name: 'Mustafa Yalçın', url: SITE_URL }],
-    creator: 'Mustafa Yalçın',
+    title: { default: `${name} — ${role}`, template: `%s — ${name}` },
+    description,
+    applicationName: name,
+    authors: [{ name, url: SITE_URL }],
+    creator: name,
     formatDetection: { telephone: false, address: false, email: false },
   };
 }
@@ -56,7 +57,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={fontVariables} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <InlineScript html={themeScript} />
       </head>
       <body className="min-h-dvh bg-bg text-fg">
         <a
@@ -65,18 +66,8 @@ export default async function LocaleLayout({
         >
           {t.nav.skipToContent}
         </a>
-        <I18nProvider locale={locale} messages={t}>
-          <ConsoleProvider index={consoleIndex}>
-            <SiteHeader />
-            <main
-              id="content"
-              tabIndex={-1}
-              className="mx-auto max-w-page px-4 pt-10 outline-none sm:px-5 md:px-8 md:pt-16"
-            >
-              {children}
-            </main>
-            <SiteFooter />
-          </ConsoleProvider>
+        <I18nProvider locale={locale} messages={clientMessages(t)}>
+          <ConsoleProvider index={consoleIndex}>{children}</ConsoleProvider>
         </I18nProvider>
       </body>
     </html>

@@ -36,9 +36,11 @@
   --color-current: currentColor;
 
   --font-*: initial;
-  --font-serif: var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
+  --font-serif:
+    var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
   --font-mono:
-    var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo, Consolas,
+    monospace;
 }
 
 @theme {
@@ -51,12 +53,14 @@
   --text-base--line-height: 1.6;
   --text-lg: 1.3125rem;
   --text-lg--line-height: 1.45;
-  --text-xl: 1.75rem;
-  --text-xl--line-height: 1.25;
+  --text-xl: clamp(1.3125rem, 1.1rem + 0.9vw, 1.75rem);
+  --text-xl--line-height: 1.3;
   --text-2xl: clamp(2rem, 1.55rem + 1.8vw, 2.75rem);
   --text-2xl--line-height: 1.12;
+  --text-2xl--letter-spacing: -0.015em;
   --text-display: clamp(2.25rem, 1.35rem + 3.6vw, 4.25rem);
   --text-display--line-height: 1.06;
+  --text-display--letter-spacing: -0.02em;
 
   --radius-*: initial;
   --radius-sm: 3px;
@@ -72,7 +76,9 @@
 
   --container-*: initial;
   --container-page: 70rem;
-  --container-prose: 40rem;
+  /* Reading measure. Not `prose`: Tailwind ships a built-in max-w-prose (65ch)
+     that would silently win. */
+  --container-measure: 40rem;
 
   --animate-*: initial;
   --animate-swap: swap var(--dur-base) var(--ease-out) both;

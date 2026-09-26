@@ -15,18 +15,17 @@ import type { ConsoleIndex } from '../types';
  *   │   └── <slug>/         /blog/<slug>
  *   │       └── <lang>.md   one file per translation
  *   └── about/              /about
- *       └── experience.md, skills.md, education.md, certificates.md, contact.md
+ *       └── experience.md, skills.md, education.md, contact.md
  */
 
 export type FileContent =
   | { type: 'readme' }
-  | { type: 'resume'; href: string }
+  | { type: 'resume' }
   | { type: 'project'; slug: string }
   | { type: 'post'; slug: string; lang: Locale }
   | { type: 'about'; section: AboutSection };
 
-export type AboutSection =
-  'experience' | 'skills' | 'education' | 'certificates' | 'contact';
+export type AboutSection = 'experience' | 'skills' | 'education' | 'contact';
 
 interface BaseNode {
   name: string;
@@ -108,7 +107,7 @@ export function buildFs(index: ConsoleIndex, labels: FsLabels): DirNode {
           kind: 'file' as const,
           name: `${lang}.md`,
           path: `/blog/${post.slug}/${lang}.md`,
-          title: post.titles[lang] ?? post.title,
+          title: post.variants[lang]?.title ?? post.title,
           meta: labels.language(lang),
           href: `/blog/${post.slug}`,
           locale: lang,
@@ -122,7 +121,6 @@ export function buildFs(index: ConsoleIndex, labels: FsLabels): DirNode {
     'experience',
     'skills',
     'education',
-    'certificates',
     'contact',
   ];
   const about = dir('/about', {
@@ -157,7 +155,7 @@ export function buildFs(index: ConsoleIndex, labels: FsLabels): DirNode {
         path: '/resume.pdf',
         title: labels.resume,
         href: index.profile.resume,
-        content: { type: 'resume', href: index.profile.resume },
+        content: { type: 'resume' },
       },
     ],
   });

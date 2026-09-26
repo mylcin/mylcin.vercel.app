@@ -42,18 +42,20 @@ const registry: Command[] = [
   hello,
 ];
 
-// `man` completes to visible command names plus the author's own page.
-man.completer = {
-  kind: 'values',
-  values: ['mustafa', ...registry.filter(c => !c.hidden).map(c => c.name)],
-};
-help.completer = {
-  kind: 'values',
-  values: registry.filter(c => !c.hidden).map(c => c.name),
-};
+const visibleNames = registry.filter(c => !c.hidden).map(c => c.name);
+man.completer = { kind: 'values', values: visibleNames };
+help.completer = { kind: 'values', values: visibleNames };
 
 export const commands = registry;
 
-export function findCommand(name: string): Command | undefined {
-  return registry.find(c => c.name === name || c.aliases?.includes(name));
+/**
+ * `handle` is the author's handle from content; it runs the `mustafa`
+ * command, so renaming the handle doesn't break the home page's "run it".
+ */
+export function findCommand(
+  name: string,
+  handle?: string
+): Command | undefined {
+  const key = name === handle ? mustafa.name : name;
+  return registry.find(c => c.name === key || c.aliases?.includes(key));
 }

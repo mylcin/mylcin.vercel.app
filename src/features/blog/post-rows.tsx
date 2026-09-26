@@ -1,15 +1,23 @@
 import Link from 'next/link';
 import { SharedTitle } from '@/components/ui/page-transition';
 import { localeMeta, type Locale } from '@/i18n/config';
-import type { Dictionary } from '@/i18n/dictionaries';
+import type { ClientDictionary } from '@/i18n/dictionaries';
 import { format, formatDate, isoDate, plural } from '@/i18n/format';
 import type { PostSummary } from '@/lib/content/blog';
 
 /** Mono chip shown on posts that aren't available in the reader's language. */
-export function LanguageBadge({ lang, t }: { lang: Locale; t: Dictionary }) {
+export function LanguageBadge({
+  lang,
+  t,
+}: {
+  lang: Locale;
+  t: ClientDictionary;
+}) {
   const label = format(t.blog.onlyIn, { language: t.languageNames[lang] });
   return (
     <span
+      data-testid="post-language-badge"
+      data-lang={lang}
       title={label}
       className="inline-flex h-5 items-center rounded-sm border border-line-strong px-1 font-mono text-xs leading-none text-muted"
     >
@@ -28,7 +36,7 @@ export function PostRows({
 }: {
   posts: PostSummary[];
   locale: Locale;
-  t: Dictionary;
+  t: ClientDictionary;
   dateStyle?: 'short' | 'dayMonth';
 }) {
   return (
@@ -46,7 +54,10 @@ export function PostRows({
               {formatDate(post.date, locale, dateStyle)}
             </time>
             <SharedTitle name={`post-${post.slug}`}>
-              <span className="block min-w-0 text-lg leading-snug transition-colors duration-(--dur-fast) group-hover:text-accent-ink">
+              <span
+                lang={post.lang !== locale ? post.lang : undefined}
+                className="block min-w-0 text-lg leading-snug transition-colors duration-(--dur-fast) group-hover:text-accent-ink"
+              >
                 {post.title}
               </span>
             </SharedTitle>
