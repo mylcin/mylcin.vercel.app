@@ -1,168 +1,144 @@
-# Terminal Portfolio
+# mylcin.vercel.app
 
-A modern, interactive developer portfolio featuring a unique terminal interface alongside a classic view mode. Built with Next.js 16, TypeScript, and a feature-based architecture.
+Personal site of Mustafa Yalçın. It reads like a manual page — `MUSTAFA(1)` —
+and has a shell built in: press <kbd>⌘K</kbd> (or <kbd>Ctrl K</kbd>, or the `>_`
+button) and the same site becomes explorable with `ls`, `cd`, `cat` and friends.
+The prompt's working directory is always the current URL.
 
----
-
-## Features
-
-- **Dual Interface** — Seamless switching between Terminal and Classic modes
-- **Interactive Terminal** — Linux-like command system with autocomplete, history, and tab completion
-- **Blog System** — MDX-powered blog with syntax highlighting, filtering, and pagination
-- **Fully Typed** — End-to-end TypeScript for type safety
-- **Responsive** — Mobile-first design with adaptive layouts
-- **Dark Mode** — Built-in theme switching with system preference detection
-- **SEO Friendly** — Optimized metadata, Open Graph, and semantic structure
-
----
-
-## Tech Stack
-
-| Category           | Technology                    |
-|--------------------|-------------------------------|
-| Framework          | Next.js 16 (App Router)       |
-| Language           | TypeScript                    |
-| Styling            | Tailwind CSS + shadcn/ui      |
-| Animations         | Framer Motion                 |
-| Blog               | Contentlayer + MDX            |
-| State Management   | Zustand                       |
-| Code Quality       | ESLint + Prettier + Husky     |
-| Deployment         | Vercel                        |
-
----
-
-## Installation
+English and Turkish, light and dark, statically generated.
 
 ```bash
-# Clone repository
-git clone https://github.com/mylcin/terminal-portfolio.git
-cd terminal-portfolio
-
-# Install dependencies
 npm install
-
-# Setup Husky
-npm run prepare
-
-# Create environment file
-cp .env.local.example .env.local
-
-# Start development server
-npm run dev
+npm run dev        # http://localhost:3000
+npm run build      # production build (also type-checks)
+npm test           # unit tests (vitest)
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+Optional: set `NEXT_PUBLIC_SITE_URL` (e.g. `https://example.com`) for canonical
+URLs, the sitemap and Open Graph images. On Vercel it falls back to the
+production domain.
 
 ---
 
-## Terminal Commands
+## Editing content
 
-| Command           | Description                        |
-|--------------------|------------------------------------|
-| `help`             | Display all available commands     |
-| `echo`             | Print text to terminal             |
-| `about`            | Learn more about me                |
-| `experience`       | View work experience               |
-| `projects`         | See my projects                    |
-| `skills`           | View technical skills              |
-| `education`        | Display educational background     |
-| `certifications`   | List certifications                |
-| `contact`          | Get contact information            |
-| `blog`             | Read blog posts                    |
-| `social`           | View social media links            |
-| `resume`           | Download resume                    |
-| `clear`            | Clear terminal                     |
-| `ascii`            | Display ASCII art                  |
-| `mode [type]`      | Change mode (terminal/classic)     |
-| `theme [type]`     | Change theme (dark/light)          |
+Everything you'd normally change lives in `content/`. No UI code needs to be
+touched to add a project, a post, a job or a translation.
 
----
+| What                               | Where                                |
+| ---------------------------------- | ------------------------------------ |
+| Name, bio, socials, résumé link    | `content/profile.ts`                 |
+| Projects (order = display order)   | `content/projects.ts`                |
+| Experience, skills, education, certificates | `content/resume.ts`         |
+| Blog posts                         | `content/blog/<slug>/<locale>.mdx`   |
+| UI copy (buttons, labels, console) | `src/i18n/dictionaries/{en,tr}.ts`   |
 
-## Blog Posts
+Translated fields look like `{ en: '…', tr: '…' }`. Only `en` is required;
+anything missing falls back to English, so content can be translated gradually.
 
-Blog posts are written in MDX and stored in `content/blog/`.
+### A new project
 
-Create a new post:
+Add an object to `content/projects.ts`. Required: `slug`, `title`, `tagline`,
+`category`, `status`, `stack`. Everything else (`summary`, `why`, `role`,
+`highlights`, `decisions`, `outcome`, `links`, `year`, `featured`) is optional —
+the project page renders whichever sections exist. Set `featured: true` to show
+it on the home page. Leave `year` out rather than guessing.
 
-```bash
-# Create file: content/blog/my-post.mdx
----
-title: "My Post Title"
-description: "Post description"
-date: "2024-01-01"
-published: true
-tags: ["nextjs", "react"]
-author: 'Mustafa Yalcin'
----
+### A new post
 
-Your content here...
+```text
+content/blog/my-post/en.mdx      # the original
+content/blog/my-post/tr.mdx      # optional translation, same slug
 ```
 
+```mdx
+---
+title: 'My post'
+description: 'One or two sentences.'
+date: '2026-10-01'
+updated: '2026-10-05'  # optional
+tags: ['nextjs', 'security']
+draft: true           # optional; drafts only show in development
 ---
 
-## Project Structure
-
-The project follows a **feature-based architecture** where each domain feature encapsulates its own components, logic, configuration, and types.
-
-```
-terminal-portfolio/
-├── content/                       # Blog posts (MDX)
-├── public/                        # Static files
-├── src/
-│   ├── app/                       # Next.js App Router
-│   │   ├── blog/
-│   │   │   ├── [slug]/page.tsx    # Blog detail page
-│   │   │   └── page.tsx           # Blog listing page
-│   │   ├── globals.css            # Global styles & design tokens
-│   │   ├── layout.tsx             # Root layout
-│   │   └── page.tsx               # Home page
-│   │
-│   ├── features/                  # Feature modules
-│   │   ├── terminal/              # Terminal feature
-│   │   │   ├── components/        # Terminal UI components
-│   │   │   ├── lib/               # Command execution, parser, formatter
-│   │   │   ├── store/             # Zustand terminal store
-│   │   │   ├── config/            # Commands & ASCII config
-│   │   │   └── types/             # Terminal type definitions
-│   │   │
-│   │   ├── blog/                  # Blog feature
-│   │   │   ├── components/        # Blog UI + MDX renderer
-│   │   │   ├── lib/               # Blog utilities
-│   │   │   └── types/             # Blog type definitions
-│   │   │
-│   │   └── classic/               # Classic portfolio mode
-│   │       └── components/        # Section components (hero, about, etc.)
-│   │
-│   └── shared/                    # Cross-feature shared code
-│       ├── components/            # Mode toggle, theme toggle, providers
-│       ├── ui/                    # shadcn/ui primitives
-│       ├── lib/                   # Utilities (cn, formatDate, storage)
-│       └── config/                # Personal info configs (about, skills, etc.)
-│
-├── .contentlayer/                 # Generated by Contentlayer
-└── ...
+Markdown / MDX here. Start with a paragraph — the page renders the title.
 ```
 
+Posts without a translation still appear in the other language's blog, marked
+with the original language, and their page says it's showing the original.
+Search engines are pointed at the original.
+
+### A new language
+
+1. Add the code to `locales` and `localeMeta` in `src/i18n/config.ts`.
+2. Copy `src/i18n/dictionaries/en.ts` to `<code>.ts`, translate, register it in
+   `dictionaries/index.ts`. The type checker and `npm test` list anything missing
+   or any placeholder that doesn't match.
+3. Translate content whenever you like; untranslated fields fall back to English.
+
 ---
 
-## Deployment
+## How it's built
 
-### Environment Variables
+- **Next.js 16** (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4.
+- **Every page is static.** Routes live under `src/app/[locale]/`; `src/proxy.ts`
+  sends unprefixed URLs (`/`, old `/blog/<slug>` links) to a locale using the
+  visitor's saved choice, then their browser language.
+- **Posts are MDX compiled on the server** (`@mdx-js/mdx` + `rehype-pretty-code`).
+  No MDX runtime ships to the browser. Code colors are CSS variables, so syntax
+  highlighting uses the site palette in both themes.
+- **No animation, state or UI library.** Motion is CSS and the View Transitions
+  API; the theme switch is ~100 lines in `src/lib/theme.ts`.
 
-Set these in your Vercel dashboard:
-
-```bash
-NEXT_PUBLIC_SITE_URL='localhost:3000'
+```text
+content/                 what the site says (edit this)
+src/
+  app/                   routes, metadata, sitemap, robots, OG images
+  components/
+    ui/                  primitives: Button, Section, Status, CopyButton…
+    layout/              header, footer, language/theme switches
+    mdx/                 how Markdown renders (headings, code blocks, links)
+  features/
+    console/             the shell — removable, see below
+    work/ blog/ home/    page-specific components
+  i18n/                  locales, dictionaries, formatting helpers
+  lib/content/           loaders that resolve content for one locale
 ```
 
+### Design system
+
+Tokens are in `src/app/globals.css`. Tailwind's default palette, type scale,
+radii and easings are reset, so only the site's tokens exist as utilities.
+
+- **Type:** Newsreader for reading, JetBrains Mono for chrome, meta and code.
+- **Color:** paper and ink, one vermilion accent for focus, hover and "you are
+  here". Status colors only appear as small dots next to a text label.
+- **Layout:** the man-page grid — a small caps label gutter and a content column
+  (`<Section>`). Every page uses it.
+- **Motion:** only state changes move — page transitions, the console opening,
+  the project preview swapping, copy confirmations. Titles travel from lists to
+  their pages via shared-element view transitions. Everything respects
+  `prefers-reduced-motion`.
+
+### The console
+
+`src/features/console/` is self-contained:
+
+- `engine/` — pure functions: a filesystem built from the site's routes, a
+  parser (quotes, `&&`, `;`), tab completion, typo suggestions. Unit-tested.
+- `commands/` — `ls`, `cd`, `cat`, `open`, `grep`, `man`, `lang`, `theme`,
+  `neofetch`… plus a few undocumented ones.
+- `console-panel.tsx` — the UI, a native `<dialog>`. Code-split: it only loads
+  when opened (or when the trigger is hovered).
+
+To switch it off, remove `<ConsoleProvider>` from `src/app/[locale]/layout.tsx`.
+Everything that uses it (the header trigger, the home page's "run it" button,
+the 404 page's console link) asks `useConsole()` first and hides itself. To
+delete it entirely, also remove the folder and the imports in
+`components/layout/site-header.tsx`, `features/home/synopsis.tsx` and
+`app/[locale]/not-found.tsx`.
+
 ---
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
----
-
-## License
-
-MIT License — feel free to use this project for your portfolio!
+MIT License

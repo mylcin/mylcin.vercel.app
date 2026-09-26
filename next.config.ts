@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next';
-import { withContentlayer } from 'next-contentlayer2';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // Unmatched URLs outside a locale (e.g. /fr/x) need a 404 that renders its
+    // own <html>, because the root layout lives under app/[locale].
+    globalNotFound: true,
+  },
 };
 
-export default withContentlayer(nextConfig);
+export default nextConfig;

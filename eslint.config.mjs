@@ -1,17 +1,19 @@
-import nextConfig from 'eslint-config-next';
-import prettierConfig from 'eslint-config-prettier';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
+import prettier from 'eslint-config-prettier';
 
-const eslintConfig = [
-  {
-    ignores: ['.next/**', 'node_modules/**', '.contentlayer/**'],
-  },
+export default defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  prettier,
   {
     rules: {
-      'react-hooks/static-components': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+      ],
     },
   },
-  ...nextConfig,
-  prettierConfig,
-];
-
-export default eslintConfig;
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+]);
