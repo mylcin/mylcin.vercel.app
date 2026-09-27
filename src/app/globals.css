@@ -1,0 +1,594 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens
+ * ─────────────
+ * Tailwind's default palette, type scale, radii, shadows and easings are reset
+ * so only the tokens below exist as utilities. If a value isn't here, it isn't
+ * part of the system.
+ *
+ * Type:    Newsreader (reading, headings) + JetBrains Mono (chrome, meta, code).
+ * Color:   warm paper & ink, one accent (vermilion) used for focus, cursor,
+ *          hover and "you are here". Status colors appear only as small dots.
+ * Radius:  sm (3px) for small inline things, md (6px) for surfaces & controls.
+ * Motion:  only state changes move. fast = hover/press, base = reveal/swap,
+ *          slow = overlays & page transitions. See the "Motion" section.
+ */
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-err: var(--err);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-*: initial;
+  --font-serif:
+    var(--font-newsreader), ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo, Consolas,
+    monospace;
+}
+
+@theme {
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.125rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.3125rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: clamp(1.3125rem, 1.1rem + 0.9vw, 1.75rem);
+  --text-xl--line-height: 1.3;
+  --text-2xl: clamp(2rem, 1.55rem + 1.8vw, 2.75rem);
+  --text-2xl--line-height: 1.12;
+  --text-2xl--letter-spacing: -0.015em;
+  --text-display: clamp(2.25rem, 1.35rem + 3.6vw, 4.25rem);
+  --text-display--line-height: 1.06;
+  --text-display--letter-spacing: -0.02em;
+
+  --radius-*: initial;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+
+  --shadow-*: initial;
+  --shadow-overlay:
+    0 1px 0 var(--line), 0 24px 64px -20px oklch(0.15 0.02 60 / 0.35);
+
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --container-*: initial;
+  --container-page: 70rem;
+  /* Reading measure. Not `prose`: Tailwind ships a built-in max-w-prose (65ch)
+     that would silently win. */
+  --container-measure: 40rem;
+
+  --animate-*: initial;
+  --animate-swap: swap var(--dur-base) var(--ease-out) both;
+
+  /* Content replaced in place (the project preview): a short settle. */
+  @keyframes swap {
+    from {
+      opacity: 0;
+      translate: 0 3px;
+    }
+  }
+}
+
+:root {
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+
+  --bg: oklch(0.985 0.004 85);
+  --bg-raised: oklch(0.962 0.006 85);
+  --fg: oklch(0.23 0.012 65);
+  --fg-muted: oklch(0.47 0.012 65);
+  --fg-faint: oklch(0.66 0.01 65);
+  --line: oklch(0.23 0.012 65 / 0.11);
+  --line-strong: oklch(0.23 0.012 65 / 0.24);
+  --accent: oklch(0.63 0.19 38);
+  --accent-ink: oklch(0.52 0.18 36);
+  --on-accent: oklch(0.99 0.003 85);
+  --selection: oklch(0.63 0.19 38 / 0.2);
+  --backdrop: oklch(0.2 0.01 65 / 0.3);
+  --ok: oklch(0.55 0.13 150);
+  --warn: oklch(0.66 0.14 72);
+  --err: oklch(0.55 0.19 27);
+
+  --code-foreground: var(--fg);
+  --code-background: transparent;
+  --code-token-comment: var(--fg-muted);
+  --code-token-keyword: var(--accent-ink);
+  --code-token-string: oklch(0.48 0.1 150);
+  --code-token-string-expression: oklch(0.48 0.1 150);
+  --code-token-constant: oklch(0.47 0.11 255);
+  --code-token-function: oklch(0.4 0.09 300);
+  --code-token-parameter: var(--fg);
+  --code-token-punctuation: var(--fg-muted);
+  --code-token-link: var(--accent-ink);
+
+  color-scheme: light;
+}
+
+/* Dark palette. Duplicated below for visitors without JavaScript (no
+   data-theme attribute), who follow the OS instead — keep the two in sync. */
+[data-theme='dark'] {
+  --bg: oklch(0.175 0.006 65);
+  --bg-raised: oklch(0.212 0.007 65);
+  --fg: oklch(0.93 0.008 85);
+  --fg-muted: oklch(0.72 0.01 80);
+  --fg-faint: oklch(0.5 0.01 80);
+  --line: oklch(0.93 0.008 85 / 0.1);
+  --line-strong: oklch(0.93 0.008 85 / 0.22);
+  --accent: oklch(0.72 0.16 45);
+  --accent-ink: oklch(0.77 0.14 50);
+  --on-accent: oklch(0.18 0.01 65);
+  --selection: oklch(0.72 0.16 45 / 0.3);
+  --backdrop: oklch(0.1 0.005 65 / 0.55);
+  --ok: oklch(0.76 0.13 150);
+  --warn: oklch(0.82 0.13 82);
+  --err: oklch(0.72 0.15 27);
+
+  --code-token-string: oklch(0.78 0.1 150);
+  --code-token-string-expression: oklch(0.78 0.1 150);
+  --code-token-constant: oklch(0.78 0.09 250);
+  --code-token-function: oklch(0.8 0.08 305);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: oklch(0.175 0.006 65);
+    --bg-raised: oklch(0.212 0.007 65);
+    --fg: oklch(0.93 0.008 85);
+    --fg-muted: oklch(0.72 0.01 80);
+    --fg-faint: oklch(0.5 0.01 80);
+    --line: oklch(0.93 0.008 85 / 0.1);
+    --line-strong: oklch(0.93 0.008 85 / 0.22);
+    --accent: oklch(0.72 0.16 45);
+    --accent-ink: oklch(0.77 0.14 50);
+    --on-accent: oklch(0.18 0.01 65);
+    --selection: oklch(0.72 0.16 45 / 0.3);
+    --backdrop: oklch(0.1 0.005 65 / 0.55);
+    --ok: oklch(0.76 0.13 150);
+    --warn: oklch(0.82 0.13 82);
+    --err: oklch(0.72 0.15 27);
+
+    --code-token-string: oklch(0.78 0.1 150);
+    --code-token-string-expression: oklch(0.78 0.1 150);
+    --code-token-constant: oklch(0.78 0.09 250);
+    --code-token-function: oklch(0.8 0.08 305);
+
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: 5rem;
+
+    /* In-page links (the blog outline, footnotes) glide to their target.
+       data-scroll-behavior on <html> lets Next.js keep route changes
+       instant, and reduced motion turns this off below. */
+    @media (prefers-reduced-motion: no-preference) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--selection);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-variant-ligatures: none;
+  }
+
+  /* Numbers in mono chrome line up; in prose they flow. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ── Primitives ───────────────────────────────────────────────────────────── */
+
+/* Inline text link: quiet underline that picks up the accent on hover. */
+@utility link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: var(--line-strong);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    text-decoration-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--accent-ink);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Man-page section label: small mono caps. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* Dotted leader between a title and its metadata, like a table of contents. */
+@utility leader {
+  flex: 1 1 1.5rem;
+  min-width: 1.5rem;
+  align-self: baseline;
+  border-bottom: 1px dotted var(--fg-faint);
+  translate: 0 -0.3em;
+}
+
+/* Forward-pointing arrows nudge on hover of their `.group`. The one motion
+   used for "go somewhere" links across the site. */
+@utility nudge {
+  display: inline-block;
+  transition: translate var(--dur-fast) var(--ease-out);
+
+  :where(.group):hover &,
+  :where(.group):focus-visible & {
+    translate: var(--nudge, 0.2em) 0;
+  }
+}
+
+@layer components {
+  /* Two-column man-page layout: label gutter + content. */
+  .sections {
+    display: grid;
+    row-gap: 3.5rem;
+
+    @media (width >= 48rem) {
+      row-gap: 4.5rem;
+    }
+  }
+
+  .section {
+    display: grid;
+    row-gap: 0.75rem;
+
+    @media (width >= 48rem) {
+      grid-template-columns: 9rem minmax(0, 1fr);
+      column-gap: 2.5rem;
+    }
+
+    @media (width >= 64rem) {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      column-gap: 3rem;
+    }
+  }
+
+  .section > .label {
+    padding-top: 0.35em;
+  }
+}
+
+/* ── Article typography ───────────────────────────────────────────────────── */
+
+@layer components {
+  .prose {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    hyphens: auto;
+
+    @media (width >= 48rem) {
+      font-size: 1.1875rem;
+    }
+
+    & > * + * {
+      margin-top: 1.25em;
+    }
+
+    & h2 {
+      margin-top: 2.2em;
+      font-size: var(--text-xl);
+      line-height: var(--text-xl--line-height);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    & h3 {
+      margin-top: 1.8em;
+      font-size: var(--text-lg);
+      line-height: var(--text-lg--line-height);
+      font-weight: 600;
+    }
+
+    & h2 + *,
+    & h3 + * {
+      margin-top: 0.6em;
+    }
+
+    & strong {
+      font-weight: 600;
+    }
+
+    & ul,
+    & ol {
+      padding-left: 1.4em;
+    }
+
+    & ul {
+      list-style: none;
+
+      & > li {
+        position: relative;
+      }
+
+      & > li::before {
+        content: '–';
+        position: absolute;
+        left: -1.1em;
+        color: var(--fg-faint);
+      }
+    }
+
+    & ol {
+      list-style: decimal;
+
+      & > li::marker {
+        font-family: var(--font-mono);
+        font-size: 0.8em;
+        color: var(--fg-muted);
+      }
+    }
+
+    & li + li {
+      margin-top: 0.4em;
+    }
+
+    & blockquote {
+      border-left: 2px solid var(--accent);
+      padding-left: 1.1em;
+      color: var(--fg-muted);
+      font-style: italic;
+    }
+
+    & hr {
+      border: 0;
+      height: 1px;
+      background: var(--line);
+      margin-block: 2.5em;
+    }
+
+    & :not(pre) > code {
+      font-size: 0.82em;
+      padding: 0.12em 0.35em;
+      border-radius: var(--radius-sm);
+      background: var(--bg-raised);
+      box-shadow: inset 0 0 0 1px var(--line);
+      overflow-wrap: anywhere;
+    }
+
+    & table {
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      border-collapse: collapse;
+    }
+
+    & th,
+    & td {
+      text-align: left;
+      padding: 0.5rem 0.75rem 0.5rem 0;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    & th {
+      font-weight: 500;
+      color: var(--fg-muted);
+    }
+
+    & img {
+      border-radius: var(--radius-md);
+    }
+
+    /* GFM footnotes */
+    & .footnotes {
+      margin-top: 3em;
+      font-size: var(--text-sm);
+      color: var(--fg-muted);
+    }
+  }
+
+  /* Code blocks (rehype-pretty-code output, wrapped by <CodeBlock>) */
+  .code-block pre {
+    overflow-x: auto;
+    padding: 1rem 1.1rem;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    tab-size: 2;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .code-block code {
+    display: grid;
+    min-width: max-content;
+  }
+
+  .code-block [data-line] {
+    padding-inline: 0.1rem;
+  }
+
+  .code-block [data-highlighted-line] {
+    background: var(--selection);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  .code-block [data-highlighted-chars] {
+    background: var(--selection);
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────────── */
+
+/* Route changes: old page steps out quickly, new page settles in. The header
+   stays put so there is one fixed reference point. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+::view-transition-old(.page) {
+  animation: var(--dur-fast) var(--ease-out) both vt-fade reverse;
+}
+
+::view-transition-new(.page) {
+  animation:
+    var(--dur-base) var(--ease-out) 60ms both vt-fade,
+    var(--dur-slow) var(--ease-out) both vt-rise;
+}
+
+/* A title that exists on both pages travels between them (list → detail). */
+::view-transition-group(.morph) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-in-out);
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    translate: 0 6px;
+  }
+}
+
+/* Article reading progress: driven by scroll position, no JavaScript. Hidden
+   where scroll timelines aren't supported, and for reduced motion. */
+.reading-progress {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reading-progress {
+      display: block;
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 60;
+      height: 2px;
+      background: var(--accent);
+      transform-origin: 0 50%;
+      animation: reading-progress linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes reading-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Theme switches are instant; nothing should animate its way to a new color. */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
